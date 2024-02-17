@@ -1,0 +1,2597 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">  
+  <meta name="description" content="An interactive Periodic Table that makes exploring the elements fun.">
+  <meta name="keywords" content="chemistry, educational, elements, periodicTable, periodic-table">
+  <meta name="author" content="Scott Weaver">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="http://www.ChemStudent.net">
+  <meta property="og:site_name" content="ChemStudent">
+  <meta property="og:title" content="ChemStudent.net - Explore The Elements">
+  <meta property="og:description" content="An interactive Periodic Table that makes exploring the elements fun.">
+  <meta property="og:image" itemprop="image primaryImageOfPage" content="https://assets.codepen.io/1197275/affinitySpace.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ChemStudent.net - Explore The Elements - An interactive Periodic Table</title>
+  <link rel="shortcut icon" type="image/jpg" href="./favicon.ico"/>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth@62.5..110&family=Arvo&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-T2MQFB2KNS"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-T2MQFB2KNS');
+    </script>
+
+<style>
+@charset "UTF-8";
+:root {
+  --border-color: rgba(234, 234, 245, 1);
+  --gutters: 3px;
+  --bg: rgb(29, 29, 34);
+  --bg2: white;
+  --text: white;
+  --text2: black;
+  --accent: rgba(234, 234, 245, 0.15);
+  --accent2: rgba(60, 50, 50, 0.1);
+  --textAccent: rgba(234, 234, 245, 0.5);
+  --textAccent2: rgba(60, 50, 50, 0.4);
+  --highlight: #aae019;
+  --highlight2: #4f00ff;
+  --active: #aae019;
+  --active2: #4f00ff;
+  --link: orange;
+  --link2: black;
+}
+
+html {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+html canvas {
+  font-size: 90%;
+}
+
+body {
+  padding: 2vmin;
+  padding-top: 0;
+  flex: 1 1 auto;
+  box-sizing: border-box;
+  font-family: Tahoma, Verdana, sans-serif;
+  color: var(--text);
+  background-color: var(--bg);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  font-size: clamp(0.9rem, 1.25vmin, 1.2rem);
+  transition: background-color 2s, color 2s;
+}
+body canvas {
+  display: none;
+  z-index: -1;
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+}
+body ::selection {
+  background: var(--highlight);
+  color: var(--bg);
+}
+body .hide {
+  display: none !important;
+}
+body a {
+  color: var(--link);
+  text-decoration: none;
+}
+body a:hover {
+  text-decoration: underline;
+}
+body p::first-letter {
+  font-size: 130%;
+  padding-left: 5px;
+}
+body .highlight {
+  color: var(--highlight);
+}
+body select,
+body input,
+body button {
+  background-color: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+}
+body input[type=color] {
+  border: none;
+}
+body > * {
+  box-sizing: border-box;
+}
+body .darken {
+  filter: brightness(50%);
+}
+body #fullscreenBanner {
+  display: none;
+  font-size: clamp(1em, 350%, 4vmin);
+  font-family: Arvo, serif;
+  margin: 5px;
+  padding: 5px;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  color: var(--highlight);
+}
+
+#navBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+#navBar a {
+  color: inherit;
+}
+#navBar > * {
+  margin: 10px;
+  padding: 10px;
+}
+#navBar #banner {
+  text-align: center;
+  font-family: "Arvo";
+  font-size: clamp(1rem, 4vmin, 3rem);
+  padding: 10px;
+  margin: 5px;
+  position: relative;
+}
+#navBar #banner div {
+  font-size: 0.6em;
+}
+#navBar .searchContainer {
+  white-space: nowrap;
+  min-width: 0;
+  display: flex;
+  flex: 0 1 auto;
+  text-align: left;
+  border-radius: 3px;
+  border: 1px solid var(--accent);
+  max-width: 600px;
+}
+#navBar .searchContainer button {
+  border: none;
+  background-color: transparent;
+  color: var(--text);
+}
+#navBar .searchContainer input {
+  border: none;
+  background-color: transparent;
+  min-width: 0px;
+  flex: 1 1 auto;
+}
+#navBar .searchContainer input:focus {
+  outline: none !important;
+}
+#navBar #viewControls {
+  display: grid;
+  font-size: 75%;
+  text-align: right;
+}
+#navBar #viewControls > * {
+  padding-bottom: 3px;
+  margin: 3px;
+}
+#navBar #lightMode {
+  text-align: right;
+  margin-bottom: 5px;
+}
+#navBar #lightMode button.disabled {
+  filter: grayscale(100%);
+}
+#navBar #lightMode button:hover {
+  background-color: var(--accent);
+  cursor: pointer;
+}
+
+main {
+  flex: 1 1 auto;
+  /*note: details in *inside* header for display purposes, that structure is not reflected here*/
+  display: flex;
+  flex-direction: column;
+  place-items: center center;
+}
+main #header {
+  align-items: start;
+  display: flex;
+  width: 100%;
+}
+main #header #headerCell1 {
+  flex: 0 1 auto;
+  display: flex;
+  place-items: center center;
+}
+main #header #headerCell1 #card {
+  position: relative;
+  border: 5px double var(--text);
+  display: block;
+  padding: 10px;
+}
+main #header #headerCell1 #card .row1 {
+  display: flex;
+  justify-content: space-between;
+}
+main #header #headerCell1 #card .row1 #cardNumber {
+  font-size: 125%;
+}
+main #header #headerCell1 #card #cardSymbol {
+  /*SYMBOL*/
+  font-family: "Arvo", serif;
+  font-size: 3.5em;
+  font-weight: bold;
+  padding: 2px;
+  display: block;
+}
+main #header #headerCell1 #card #cardSeries {
+  /*SERIES */
+  font-family: monospace;
+  display: grid;
+  place-items: start end;
+  grid-gap: 5px;
+}
+main #header #headerCell1 #card #cardSeries span:nth-child(1) {
+  /*=black*/
+  padding: 3px;
+}
+main #header #headerCell1 #card #cardSeries span:nth-child(1) span {
+  color: black;
+}
+main #header #headerCell1 #card #cardSeries #synthetic,
+main #header #headerCell1 #card #cardSeries #radioactive {
+  font-size: 130%;
+}
+main #header #headerCell1 #card #cardSummary {
+  white-space: pre-wrap;
+}
+main #header #headerCell1 #card #cardSummary a {
+  font-size: 120%;
+}
+main #header #headerCell1 #card #cardSummary #element_image_container {
+  float: left;
+  padding: 10px;
+}
+main #header #headerCell1 #card #cardSummary #element_image_container #element_image {
+  width: 100%;
+}
+main #details {
+  padding: 5px;
+  column-count: 3;
+}
+main #details div {
+  padding: 3px;
+  break-inside: avoid-column;
+  background-color: var(--accent);
+  margin: 2px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+main #details div.selected {
+  outline: 2px solid var(--active);
+}
+main #details div:hover {
+  outline: 2px solid var(--textAccent);
+  cursor: pointer;
+}
+main #details div:hover.selected {
+  outline: 2px solid var(--active);
+}
+main #details div span {
+  padding: 0px;
+  flex: 0 1 auto;
+}
+main #details div span:nth-child(1) {
+  margin-right: 5px;
+}
+main #details div span:nth-child(2) {
+  font-size: 90%;
+  display: flex;
+}
+main #details div span:nth-child(2) span {
+  flex: 0 1 auto;
+}
+main #details div span:nth-child(2) span:nth-child(2) {
+  font-size: 80%;
+}
+main #fieldDefinition {
+  padding: 20px;
+  font-size: 95%;
+  max-height: 100px;
+  overflow-y: auto;
+}
+main #theTable {
+  display: grid;
+  margin: 5px;
+  padding: 5px;
+  grid-gap: var(--gutters);
+  /*group label: example: halogens */
+  /* ELEMENT DIVS */
+  /*THE GRID (layout)*/
+}
+main #theTable #controls {
+  text-align: right;
+  margin: 5px;
+  padding: 5px;
+}
+main #theTable #controls > * {
+  padding: 3px;
+  margin: 2px;
+}
+main #theTable #controls #currentElement {
+  font-size: 120%;
+  color: var(--highlight);
+}
+main #theTable #controls .searchContainer {
+  white-space: nowrap;
+  min-width: 0;
+  display: flex;
+  flex: 0 1 auto;
+  text-align: left;
+  border-radius: 3px;
+  border: 1px solid var(--accent);
+  display: inline-block;
+}
+main #theTable #controls .searchContainer button {
+  border: none;
+  background-color: transparent;
+  color: var(--text);
+}
+main #theTable #controls .searchContainer input {
+  border: none;
+  background-color: transparent;
+  min-width: 0px;
+  flex: 1 1 auto;
+}
+main #theTable #controls .searchContainer input:focus {
+  outline: none !important;
+}
+main #theTable #controls #colors,
+main #theTable #controls #tempControls {
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+}
+main #theTable #controls #colors,
+main #theTable #controls .searchContainer,
+main #theTable #controls #tempControls {
+  margin: 2px;
+}
+main #theTable #controls #colors > *,
+main #theTable #controls .searchContainer > *,
+main #theTable #controls #tempControls > * {
+  margin: 2px;
+}
+main #theTable #controls #colors {
+  display: inline-flex;
+}
+main #theTable #controls #colors #logarithmic {
+  min-width: 10ex;
+}
+main #theTable #controls #tempControls .row1 {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+main #theTable #controls #tempControls input[type=number] {
+  max-width: 70px;
+  text-align: right;
+}
+main #theTable #controls #tempControls #tempSlider {
+  margin: 10px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: linear-gradient(to left, #ff82b0, #bbf5bb, #a1c9f1);
+  border-radius: 3px;
+  height: 8px;
+  width: 95%;
+  vertical-align: center;
+}
+main #theTable #controls #tempControls .tempUnits {
+  color: var(--textAccent);
+  width: 100%;
+  display: inline-block;
+}
+main #theTable #controls #compControls {
+  white-space: nowrap;
+}
+main #theTable #controls #compControls > * {
+  margin: 1px;
+}
+main #theTable #controls #compControls input {
+  max-width: 8ex;
+}
+main #theTable #connector {
+  display: grid;
+  place-items: center center;
+  font-size: 65%;
+}
+main #theTable #connector #connector_label1, main #theTable #connector #connector_label2 {
+  font-family: Archivo;
+}
+main #theTable #connector #connector_label1 {
+  font-variation-settings: "wdth" 75;
+}
+main #theTable #connector:after {
+  content: "⇩️";
+  font-size: 200%;
+}
+main #theTable #connector div {
+  display: grid;
+  place-items: center center;
+  padding: 3px;
+}
+main #theTable #connector div:nth-child(3) {
+  font-size: 200%;
+}
+main #theTable #legend {
+  font-size: 90%;
+  display: grid;
+  font-style: italic;
+  place-content: space-around start;
+}
+main #theTable #legend > :nth-child(1) {
+  font-size: 75%;
+}
+main #theTable #legend > :nth-child(4) {
+  color: var(--highlight);
+}
+main #theTable #minMaxLabel {
+  padding: 2px;
+  font-size: 75%;
+  display: flex;
+  flex-direction: column;
+  justify-content: end; /*up and down*/
+  align-items: start;
+}
+main #theTable div.header_group,
+main #theTable div.header_period {
+  text-align: center;
+}
+main #theTable div.header_group .group_label,
+main #theTable div.header_period .group_label {
+  font-size: 80%;
+}
+main #theTable div#marker_guide {
+  display: grid;
+  place-items: center;
+}
+main #theTable div#marker_guide #group_marker:after {
+  content: "→️";
+}
+main #theTable div#marker_guide #period_marker:after {
+  content: "↓";
+}
+main #theTable > div {
+  overflow: hidden;
+}
+main #theTable > div:not([class~=nonElement]) {
+  display: grid;
+  place-content: start start;
+  padding: 5px;
+}
+main #theTable > div:not([class~=nonElement]):hover {
+  z-index: 3;
+  box-shadow: 0 0 1em var(--active);
+}
+main #theTable > div:not([class~=nonElement]) > span {
+  padding: 1px;
+}
+main #theTable > div:not([class~=nonElement]) > span:nth-child(1) {
+  /*ATOMIC NUMBER*/
+  font-size: 65%;
+}
+main #theTable > div:not([class~=nonElement]) > span:nth-child(2) {
+  /*SYMBOL*/
+  font-size: 125%;
+  font-weight: bold;
+  font-family: "Marcellus", serif;
+}
+main #theTable > div:not([class~=nonElement]) > span:nth-child(3) {
+  /*NAME*/
+  text-decoration: underline;
+  font-family: Archivo;
+}
+main #theTable > div:not([class~=nonElement]) > span:nth-child(4) {
+  font-family: Archivo;
+  /*ATOMIC MASS OR VARIABLE!*/
+}
+main #theTable > div:not([class~=nonElement]).active {
+  z-index: 2;
+  box-shadow: var(--gutters) calc(-1 * var(--gutters)) 0 0 var(--active), calc(-1 * var(--gutters)) var(--gutters) 0 0 var(--active), var(--gutters) var(--gutters) 0 0 var(--active), calc(-1 * var(--gutters)) calc(-1 * var(--gutters)) 0 0 var(--active);
+}
+main #theTable div.header_group {
+  padding: 5px;
+  grid-row: 1/2;
+  display: grid;
+  place-items: center;
+}
+main #theTable div.header_period {
+  padding: 5px;
+  grid-column: 1/2;
+  display: grid;
+  place-items: center;
+}
+main #theTable div#legend {
+  grid-row: 2;
+  grid-column: 3/6;
+}
+main #theTable div#minMaxLabel {
+  grid-row: 4/5;
+  grid-column: 4/7;
+}
+main #theTable div#controls {
+  grid-row: 2/5;
+  grid-column: 6/13;
+}
+main #theTable div#connector {
+  grid-row: 7/10;
+  grid-column: 4/5;
+}
+main #theTable div.row1 {
+  grid-row: 1/2;
+}
+main #theTable div.row2 {
+  grid-row: 2/3;
+}
+main #theTable div.row3 {
+  grid-row: 3/4;
+}
+main #theTable div.row4 {
+  grid-row: 4/5;
+}
+main #theTable div.row5 {
+  grid-row: 5/6;
+}
+main #theTable div.row6 {
+  grid-row: 6/7;
+}
+main #theTable div.row7 {
+  grid-row: 7/8;
+}
+main #theTable div.row8 {
+  grid-row: 8/9;
+}
+main #theTable div.row9 {
+  grid-row: 9/10;
+}
+main #theTable div.row10 {
+  grid-row: 10/11;
+}
+main #theTable div.row11 {
+  grid-row: 11/12;
+}
+main #theTable div.col1 {
+  grid-column: 1/2;
+}
+main #theTable div.col2 {
+  grid-column: 2/3;
+}
+main #theTable div.col3 {
+  grid-column: 3/4;
+}
+main #theTable div.col4 {
+  grid-column: 4/5;
+}
+main #theTable div.col5 {
+  grid-column: 5/6;
+}
+main #theTable div.col6 {
+  grid-column: 6/7;
+}
+main #theTable div.col7 {
+  grid-column: 7/8;
+}
+main #theTable div.col8 {
+  grid-column: 8/9;
+}
+main #theTable div.col9 {
+  grid-column: 9/10;
+}
+main #theTable div.col10 {
+  grid-column: 10/11;
+}
+main #theTable div.col11 {
+  grid-column: 11/12;
+}
+main #theTable div.col12 {
+  grid-column: 12/13;
+}
+main #theTable div.col13 {
+  grid-column: 13/14;
+}
+main #theTable div.col14 {
+  grid-column: 14/15;
+}
+main #theTable div.col15 {
+  grid-column: 15/16;
+}
+main #theTable div.col16 {
+  grid-column: 16/17;
+}
+main #theTable div.col17 {
+  grid-column: 17/18;
+}
+main #theTable div.col18 {
+  grid-column: 18/19;
+}
+main #theTable div.col19 {
+  grid-column: 19/20;
+}
+
+#footer {
+  font-size: 90%;
+  padding: 10px;
+  text-align: center;
+  justify-content: center;
+  align-items: end;
+}
+#footer .logo {
+  width: min-content;
+  display: inline-block;
+  border: 5px double var(--text);
+  padding: 2px;
+  font-size: 200%;
+  font-family: Arvo;
+  text-shadow: white 0px 0px 5px, rgb(87, 23, 143) 0px 0px 10px, rgb(87, 23, 143) 0px 0px 15px;
+}
+#footer li {
+  display: block;
+  margin: 5px;
+}
+#footer #google_translate_element {
+  display: inline-block;
+}
+
+/*LIGHT MODE*/
+body.light {
+  color: var(--text2);
+  background-color: var(--bg2);
+}
+body.light ::selection {
+  background-color: var(--highlight2);
+  color: var(--bg2);
+}
+body.light .highlight {
+  color: var(--highlight2);
+}
+body.light input,
+body.light select,
+body.light button {
+  border: 1px solid var(--accent2);
+}
+body.light input,
+body.light select,
+body.light button,
+body.light .xBtnLabel {
+  background-color: var(--bg2);
+  color: var(--text2);
+}
+body.light .searchContainer {
+  border: 1px solid var(--accent2) !important;
+}
+body.light #navBar #banner {
+  color: var(--link2);
+}
+body.light #navBar #orbit #atom {
+  display: hidden;
+}
+body.light #navBar #lightMode button:hover {
+  background-color: var(--accent2);
+}
+body.light a {
+  text-decoration: underline;
+  color: var(--link2);
+}
+body.light #fullscreenBanner {
+  color: var(--highlight2);
+}
+body.light main #header {
+  /*nested paths with an id selector really aren't necessary here, but may be more readable*/
+}
+body.light main #header #headerCell1 #card {
+  border-color: var(--text2);
+}
+body.light main #details div {
+  background-color: var(--accent2);
+}
+body.light main #details div.selected {
+  outline: 2px solid var(--active2);
+}
+body.light main #details div:hover {
+  outline: 2px solid var(--textAccent2);
+}
+body.light main #details div:hover.selected {
+  outline: 2px solid var(--active2);
+}
+body.light main #theTable > div:not(.nonElement) {
+  border: 1px solid var(--text2);
+}
+body.light main #theTable > div:not(.nonElement):hover {
+  box-shadow: 0 0 1em var(--active2);
+}
+body.light main #theTable > div:not(.nonElement).active {
+  box-shadow: var(--gutters) calc(-1 * var(--gutters)) 0 0 var(--active2), calc(-1 * var(--gutters)) var(--gutters) 0 0 var(--active2), var(--gutters) var(--gutters) 0 0 var(--active2), calc(-1 * var(--gutters)) calc(-1 * var(--gutters)) 0 0 var(--active2);
+}
+body.light main #theTable #legend {
+  filter: brightness(70%);
+}
+body.light main #theTable #legend > :nth-child(4) {
+  color: var(--highlight2);
+}
+body.light main #theTable #controls #colors,
+body.light main #theTable #controls #tempControls {
+  border: 1px solid var(--accent2);
+}
+body.light main #theTable #controls #tempControls .tempUnits {
+  color: var(--textAccent2);
+}
+body.light main #theTable #controls #currentElement {
+  color: var(--highlight2);
+}
+body.light #footer .logo {
+  border: 5px double var(--text2);
+}
+
+/* MEDIA MIXIN DEFS */
+/*'always on' media query override components */
+/* responsive mixins */
+/* 'always on' media queries*/
+@media only screen and (max-width: 1800px) {
+  body main #details {
+    column-count: 2;
+  }
+}
+@media only screen and (max-width: 1200px) {
+  body {
+    align-items: normal !important;
+  }
+  body main {
+    place-items: normal;
+  }
+}
+@media only screen and (max-width: 500px) {
+  body main #theTable {
+    font-size: 90%;
+  }
+  body main #details {
+    column-count: unset !important;
+  }
+}
+/*conditional media queries*/
+body.responsive {
+  /* vertical mode */
+  /*@media only screen and (max-width: 700px) {
+    @include vertical_mode;
+  }*/
+  /*medium mode*/
+  /*large mode*/
+  /*WIDE MODE*/
+}
+@media only screen and (min-width: 0px) and (max-width: 1199px) {
+  body.responsive #navBar {
+    justify-content: center;
+  }
+  body.responsive #navBar > * {
+    margin: 2px;
+    padding: 2px;
+  }
+  body.responsive main {
+    place-items: normal;
+    max-width: 1200px;
+  }
+  body.responsive main #header {
+    display: block;
+  }
+  body.responsive main #details {
+    column-count: unset !important;
+    max-height: min(50vh, 300px);
+    overflow-y: scroll;
+  }
+  body.responsive main #theTable {
+    overflow-x: scroll;
+    grid-gap: 1px;
+  }
+  body.responsive main #theTable #legend {
+    font-size: 70%;
+  }
+  body.responsive main #theTable input[type=color] {
+    border: 0;
+    padding: 0;
+    background: none;
+  }
+  body.responsive main #theTable div#marker_guide {
+    font-size: 70%;
+  }
+  body.responsive main #theTable div[class~=header_group],
+body.responsive main #theTable div[class~=header_period] {
+    font-size: 70%;
+  }
+  body.responsive main #theTable div[class~=header_group] .group_label,
+body.responsive main #theTable div[class~=header_period] .group_label {
+    display: none;
+  }
+  body.responsive main #theTable #connector #connector_label1,
+body.responsive main #theTable #connector #connector_label2 {
+    display: none;
+  }
+  body.responsive main #theTable #controls #tempControls .row1 {
+    align-items: end;
+  }
+  body.responsive main #theTable #controls #tempControls .row1 input {
+    width: 7ex;
+  }
+  body.responsive main #theTable #controls #tempControls .row1 #phaseAtLabel {
+    display: none;
+  }
+  body.responsive main #theTable > div {
+    overflow: unset;
+  }
+  body.responsive main #theTable > div:not([class~=nonElement]) {
+    padding: 1px;
+    font-size: 90%;
+  }
+  body.responsive main #theTable > div:not([class~=nonElement]) span:nth-child(1) {
+    /*NUMBER*/
+    font-size: 80%;
+  }
+  body.responsive main #theTable > div:not([class~=nonElement]) span:nth-child(2) {
+    /*SYMBOL*/
+  }
+  body.responsive main #theTable > div:not([class~=nonElement]) span:nth-child(3) {
+    /*NAME*/
+    font-size: 90%;
+  }
+  body.responsive main #theTable > div:not([class~=nonElement]) span:nth-child(4) {
+    /*dynamic*/
+  }
+  body.responsive #footer {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+@media only screen and (min-width: 1201px) and (max-width: 1799px) {
+  body.responsive main {
+    max-width: 1800px;
+  }
+  body.responsive main #header {
+    display: flex;
+  }
+  body.responsive main #details {
+    column-count: 2;
+    column-gap: 0px;
+  }
+  body.responsive main #theTable {
+    grid-gap: 1px;
+  }
+  body.responsive main #theTable div#marker_guide {
+    font-size: 90%;
+  }
+  body.responsive main #theTable div[class^=header_group],
+body.responsive main #theTable div[class^=header_period] {
+    font-size: 80%;
+  }
+  body.responsive main #theTable > div:not([class~=nonElement]) {
+    padding: 1px;
+    font-size: 85%;
+  }
+  body.responsive main #theTable > div:not([class~=nonElement]) span:nth-child(1) {
+    /*NUMBER*/
+  }
+  body.responsive main #theTable > div:not([class~=nonElement]) span:nth-child(2) {
+    /*SYMBOL*/
+  }
+  body.responsive main #theTable > div:not([class~=nonElement]) span:nth-child(3) {
+    /*NAME*/
+  }
+  body.responsive main #theTable > div:not([class~=nonElement]) span:nth-child(4) {
+    /*ATOMIC MASS*/
+  }
+}
+@media only screen and (max-aspect-ratio: 18/9) and (min-width: 1800px) {
+  body.responsive main #details {
+    column-gap: unset;
+  }
+  body.responsive main #details div {
+    padding: 4px;
+  }
+  body.responsive main #header {
+    display: flex;
+  }
+  body.responsive main #theTable {
+    grid-gap: 3px;
+  }
+  body.responsive main #theTable #connector {
+    font-size: 80%;
+  }
+  body.responsive main #theTable > div:not([class~=nonElement]) {
+    padding: 4px;
+  }
+  body.responsive main #theTable > div:not([class~=nonElement]) span:nth-child(2) {
+    /*SYMBOL*/
+  }
+  body.responsive main #theTable > div:not([class~=nonElement]) span:nth-child(3) {
+    /*NAME*/
+  }
+}
+@media only screen and (min-aspect-ratio: 18/9) and (min-width: 1500px) and (max-width: 2299px) {
+  body.responsive main {
+    flex-direction: row;
+    place-items: start start;
+  }
+  body.responsive main #header {
+    display: block;
+    overflow-y: scroll;
+    max-height: 95vh;
+    min-width: 500px;
+    width: max(33%, 500px);
+  }
+  body.responsive main #details {
+    column-count: 1;
+  }
+  body.responsive main #theTable > div:not([class~=nonElement]) {
+    padding: 3px;
+  }
+  body.responsive main #theTable > div:not([class~=nonElement]) span:nth-child(2) {
+    /*SYMBOL*/
+    font-size: 120%;
+  }
+}
+@media only screen and (min-aspect-ratio: 18/9) and (min-width: 2300px) {
+  body.responsive main #theTable {
+    min-width: 1400px;
+    /* old school wide table */
+  }
+  body.responsive main #theTable div#connector {
+    display: none;
+  }
+  body.responsive main #theTable div.row1 {
+    grid-row: 1/2;
+  }
+  body.responsive main #theTable div.row2 {
+    grid-row: 2/3;
+  }
+  body.responsive main #theTable div.row3 {
+    grid-row: 3/4;
+  }
+  body.responsive main #theTable div.row4 {
+    grid-row: 4/5;
+  }
+  body.responsive main #theTable div.row5 {
+    grid-row: 5/6;
+  }
+  body.responsive main #theTable div.row6 {
+    grid-row: 6/7;
+  }
+  body.responsive main #theTable div.row7 {
+    grid-row: 7/8;
+  }
+  body.responsive main #theTable div.row8 {
+    grid-row: 8/9;
+  }
+  body.responsive main #theTable div.row9 {
+    grid-row: 9/10;
+  }
+  body.responsive main #theTable div.row10 {
+    /*grid-row: 10 / 11;*/
+    grid-row: 7/8;
+  }
+  body.responsive main #theTable div.row11 {
+    /*grid-row: 11 / 12;*/
+    grid-row: 8/9;
+  }
+  body.responsive main #theTable div.col1 {
+    grid-column: 1/2;
+  }
+  body.responsive main #theTable div.col2 {
+    grid-column: 2/3;
+  }
+  body.responsive main #theTable div.col3 {
+    grid-column: 3/4;
+  }
+  body.responsive main #theTable div.col4 {
+    grid-column: 4/5;
+  }
+  body.responsive main #theTable div.col5 {
+    grid-column: 19/20;
+  }
+  body.responsive main #theTable div.col6 {
+    grid-column: 20/21;
+  }
+  body.responsive main #theTable div.col7 {
+    grid-column: 21/22;
+  }
+  body.responsive main #theTable div.col8 {
+    grid-column: 22/23;
+  }
+  body.responsive main #theTable div.col9 {
+    grid-column: 23/24;
+  }
+  body.responsive main #theTable div.col10 {
+    grid-column: 24/25;
+  }
+  body.responsive main #theTable div.col11 {
+    grid-column: 25/26;
+  }
+  body.responsive main #theTable div.col12 {
+    grid-column: 26/27;
+  }
+  body.responsive main #theTable div.col13 {
+    grid-column: 27/28;
+  }
+  body.responsive main #theTable div.col14 {
+    grid-column: 28/29;
+  }
+  body.responsive main #theTable div.col15 {
+    grid-column: 29/30;
+  }
+  body.responsive main #theTable div.col16 {
+    grid-column: 30/31;
+  }
+  body.responsive main #theTable div.col17 {
+    grid-column: 31/32;
+  }
+  body.responsive main #theTable div.col18 {
+    grid-column: 32/33;
+  }
+  body.responsive main #theTable div.col19 {
+    grid-column: 33/34;
+  }
+  body.responsive main #theTable div.row5.col4,
+body.responsive main #theTable div.row6.col4 {
+    grid-column: 18/19;
+  }
+  body.responsive main #theTable div.row10.col5,
+body.responsive main #theTable div.row11.col5 {
+    grid-column: 5/6;
+  }
+  body.responsive main #theTable div.row10.col6,
+body.responsive main #theTable div.row11.col6 {
+    grid-column: 6/7;
+  }
+  body.responsive main #theTable div.row10.col7,
+body.responsive main #theTable div.row11.col7 {
+    grid-column: 7/8;
+  }
+  body.responsive main #theTable div.row10.col8,
+body.responsive main #theTable div.row11.col8 {
+    grid-column: 8/9;
+  }
+  body.responsive main #theTable div.row10.col9,
+body.responsive main #theTable div.row11.col9 {
+    grid-column: 9/10;
+  }
+  body.responsive main #theTable div.row10.col10,
+body.responsive main #theTable div.row11.col10 {
+    grid-column: 10/11;
+  }
+  body.responsive main #theTable div.row10.col11,
+body.responsive main #theTable div.row11.col11 {
+    grid-column: 11/12;
+  }
+  body.responsive main #theTable div.row10.col12,
+body.responsive main #theTable div.row11.col12 {
+    grid-column: 12/13;
+  }
+  body.responsive main #theTable div.row10.col13,
+body.responsive main #theTable div.row11.col13 {
+    grid-column: 13/14;
+  }
+  body.responsive main #theTable div.row10.col14,
+body.responsive main #theTable div.row11.col14 {
+    grid-column: 14/15;
+  }
+  body.responsive main #theTable div.row10.col15,
+body.responsive main #theTable div.row11.col15 {
+    grid-column: 15/15;
+  }
+  body.responsive main #theTable div.row10.col16,
+body.responsive main #theTable div.row11.col16 {
+    grid-column: 16/17;
+  }
+  body.responsive main #theTable div.row10.col17,
+body.responsive main #theTable div.row11.col17 {
+    grid-column: 17/18;
+  }
+  body.responsive main #theTable div.row10.col18,
+body.responsive main #theTable div.row11.col18 {
+    grid-column: 18/19;
+  }
+}
+
+body.vertical input[type=color] {
+  max-width: 30px;
+}
+body.vertical #navBar > * {
+  margin: 2px;
+  padding: 2px;
+}
+body.vertical main #header {
+  display: block;
+}
+body.vertical main #details {
+  column-count: 2;
+}
+body.vertical main #theTable > div:not([class~=nonElement]) {
+  min-width: 30px;
+  font-size: 80%;
+}
+body.vertical main #theTable > div:not([class~=nonElement]) span:nth-child(1) {
+  /*NUMBER*/
+  font-size: 80%;
+}
+body.vertical main #theTable > div:not([class~=nonElement]) span:nth-child(4) {
+  /*dynamic*/
+}
+body.vertical main #theTable div#legend {
+  justify-content: right;
+  justify-items: right;
+  grid-row: 17/18;
+  grid-column: 2/5;
+}
+body.vertical main #theTable input[type=color] {
+  border: 0;
+  padding: 0;
+  background: none;
+}
+body.vertical main #theTable div#minMaxLabel {
+  grid-row: 12/13;
+  grid-column: 2/5;
+  align-items: center;
+}
+body.vertical main #theTable div#marker_guide {
+  display: block;
+}
+body.vertical main #theTable div#marker_guide #group_marker:after {
+  content: "↓";
+}
+body.vertical main #theTable div#marker_guide #period_marker:after {
+  content: "→️";
+}
+body.vertical main #theTable #connector {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+body.vertical main #theTable #connector div {
+  padding: 1px;
+}
+body.vertical main #theTable #connector:after {
+  content: "⇨";
+}
+body.vertical main #theTable div.header_group {
+  grid-column: 1/2;
+}
+body.vertical main #theTable div.header_group .group_label {
+  display: none;
+}
+body.vertical main #theTable div.header_period {
+  grid-row: 1/2;
+}
+body.vertical main #theTable div#controls {
+  grid-column: 2/5;
+  grid-row: 8/13;
+}
+body.vertical main #theTable div#controls #search2 {
+  width: 70px;
+}
+body.vertical main #theTable div#controls #colors {
+  display: block;
+  border: none;
+}
+body.vertical main #theTable div#controls #compControls {
+  align-items: end;
+  display: flex;
+  flex-direction: column;
+}
+body.vertical main #theTable div#controls #tempControls .row1 {
+  flex-direction: column;
+}
+body.vertical main #theTable div#compControls select {
+  max-width: 100px;
+}
+body.vertical main #theTable div#connector {
+  grid-column: 7/10;
+  grid-row: 17/18;
+}
+body.vertical main #theTable div.row1 {
+  grid-column: 1/2;
+}
+body.vertical main #theTable div.row2 {
+  grid-column: 2/3;
+}
+body.vertical main #theTable div.row3 {
+  grid-column: 3/4;
+}
+body.vertical main #theTable div.row4 {
+  grid-column: 4/5;
+}
+body.vertical main #theTable div.row5 {
+  grid-column: 5/6;
+}
+body.vertical main #theTable div.row6 {
+  grid-column: 6/7;
+}
+body.vertical main #theTable div.row7 {
+  grid-column: 7/8;
+}
+body.vertical main #theTable div.row8 {
+  grid-column: 8/9;
+}
+body.vertical main #theTable div.row9 {
+  grid-column: 9/10;
+}
+body.vertical main #theTable div.row10 {
+  grid-column: 10/11;
+}
+body.vertical main #theTable div.row10 {
+  grid-column: 11/12;
+}
+body.vertical main #theTable div.row11 {
+  grid-column: 12/13;
+}
+body.vertical main #theTable div.col1 {
+  grid-row: 1/2;
+}
+body.vertical main #theTable div.col2 {
+  grid-row: 19/20;
+}
+body.vertical main #theTable div.col3 {
+  grid-row: 18/19;
+}
+body.vertical main #theTable div.col4 {
+  grid-row: 17/18;
+}
+body.vertical main #theTable div.col5 {
+  grid-row: 16/17;
+}
+body.vertical main #theTable div.col6 {
+  grid-row: 15/16;
+}
+body.vertical main #theTable div.col7 {
+  grid-row: 14/15;
+}
+body.vertical main #theTable div.col8 {
+  grid-row: 13/14;
+}
+body.vertical main #theTable div.col9 {
+  grid-row: 12/13;
+}
+body.vertical main #theTable div.col10 {
+  grid-row: 11/12;
+}
+body.vertical main #theTable div.col11 {
+  grid-row: 10/11;
+}
+body.vertical main #theTable div.col12 {
+  grid-row: 9/10;
+}
+body.vertical main #theTable div.col13 {
+  grid-row: 8/9;
+}
+body.vertical main #theTable div.col14 {
+  grid-row: 7/8;
+}
+body.vertical main #theTable div.col15 {
+  grid-row: 6/7;
+}
+body.vertical main #theTable div.col16 {
+  grid-row: 5/6;
+}
+body.vertical main #theTable div.col17 {
+  grid-row: 4/5;
+}
+body.vertical main #theTable div.col18 {
+  grid-row: 3/4;
+}
+body.vertical main #theTable div.col19 {
+  grid-row: 2/3;
+}
+body.vertical #footer {
+  flex-direction: column;
+}
+
+body.small #navBar {
+  justify-content: center;
+}
+body.small #navBar > * {
+  margin: 2px;
+  padding: 2px;
+}
+body.small main {
+  place-items: normal;
+  max-width: 1200px;
+}
+body.small main #header {
+  display: block;
+}
+body.small main #details {
+  column-count: unset !important;
+  max-height: min(50vh, 300px);
+  overflow-y: scroll;
+}
+body.small main #theTable {
+  overflow-x: scroll;
+  grid-gap: 1px;
+}
+body.small main #theTable #legend {
+  font-size: 70%;
+}
+body.small main #theTable input[type=color] {
+  border: 0;
+  padding: 0;
+  background: none;
+}
+body.small main #theTable div#marker_guide {
+  font-size: 70%;
+}
+body.small main #theTable div[class~=header_group],
+body.small main #theTable div[class~=header_period] {
+  font-size: 70%;
+}
+body.small main #theTable div[class~=header_group] .group_label,
+body.small main #theTable div[class~=header_period] .group_label {
+  display: none;
+}
+body.small main #theTable #connector #connector_label1,
+body.small main #theTable #connector #connector_label2 {
+  display: none;
+}
+body.small main #theTable #controls #tempControls .row1 {
+  align-items: end;
+}
+body.small main #theTable #controls #tempControls .row1 input {
+  width: 7ex;
+}
+body.small main #theTable #controls #tempControls .row1 #phaseAtLabel {
+  display: none;
+}
+body.small main #theTable > div {
+  overflow: unset;
+}
+body.small main #theTable > div:not([class~=nonElement]) {
+  padding: 1px;
+  font-size: 90%;
+}
+body.small main #theTable > div:not([class~=nonElement]) span:nth-child(1) {
+  /*NUMBER*/
+  font-size: 80%;
+}
+body.small main #theTable > div:not([class~=nonElement]) span:nth-child(2) {
+  /*SYMBOL*/
+}
+body.small main #theTable > div:not([class~=nonElement]) span:nth-child(3) {
+  /*NAME*/
+  font-size: 90%;
+}
+body.small main #theTable > div:not([class~=nonElement]) span:nth-child(4) {
+  /*dynamic*/
+}
+body.small #footer {
+  flex-direction: column;
+  align-items: center;
+}
+
+body.medium main {
+  max-width: 1800px;
+}
+body.medium main #header {
+  display: flex;
+}
+body.medium main #details {
+  column-count: 2;
+  column-gap: 0px;
+}
+body.medium main #theTable {
+  grid-gap: 1px;
+}
+body.medium main #theTable div#marker_guide {
+  font-size: 90%;
+}
+body.medium main #theTable div[class^=header_group],
+body.medium main #theTable div[class^=header_period] {
+  font-size: 80%;
+}
+body.medium main #theTable > div:not([class~=nonElement]) {
+  padding: 1px;
+  font-size: 85%;
+}
+body.medium main #theTable > div:not([class~=nonElement]) span:nth-child(1) {
+  /*NUMBER*/
+}
+body.medium main #theTable > div:not([class~=nonElement]) span:nth-child(2) {
+  /*SYMBOL*/
+}
+body.medium main #theTable > div:not([class~=nonElement]) span:nth-child(3) {
+  /*NAME*/
+}
+body.medium main #theTable > div:not([class~=nonElement]) span:nth-child(4) {
+  /*ATOMIC MASS*/
+}
+
+body.large main #details {
+  column-gap: unset;
+}
+body.large main #details div {
+  padding: 4px;
+}
+body.large main #header {
+  display: flex;
+}
+body.large main #theTable {
+  grid-gap: 3px;
+}
+body.large main #theTable #connector {
+  font-size: 80%;
+}
+body.large main #theTable > div:not([class~=nonElement]) {
+  padding: 4px;
+}
+body.large main #theTable > div:not([class~=nonElement]) span:nth-child(2) {
+  /*SYMBOL*/
+}
+body.large main #theTable > div:not([class~=nonElement]) span:nth-child(3) {
+  /*NAME*/
+}
+
+body.wide main {
+  flex-direction: row;
+  place-items: start start;
+}
+body.wide main #header {
+  display: block;
+  overflow-y: scroll;
+  max-height: 95vh;
+  min-width: 500px;
+  width: max(33%, 500px);
+}
+body.wide main #details {
+  column-count: 1;
+}
+body.wide main #theTable > div:not([class~=nonElement]) {
+  padding: 3px;
+}
+body.wide main #theTable > div:not([class~=nonElement]) span:nth-child(2) {
+  /*SYMBOL*/
+  font-size: 120%;
+}
+
+body.ultrawide main #theTable {
+  min-width: 1400px;
+  /* old school wide table */
+}
+body.ultrawide main #theTable div#connector {
+  display: none;
+}
+body.ultrawide main #theTable div.row1 {
+  grid-row: 1/2;
+}
+body.ultrawide main #theTable div.row2 {
+  grid-row: 2/3;
+}
+body.ultrawide main #theTable div.row3 {
+  grid-row: 3/4;
+}
+body.ultrawide main #theTable div.row4 {
+  grid-row: 4/5;
+}
+body.ultrawide main #theTable div.row5 {
+  grid-row: 5/6;
+}
+body.ultrawide main #theTable div.row6 {
+  grid-row: 6/7;
+}
+body.ultrawide main #theTable div.row7 {
+  grid-row: 7/8;
+}
+body.ultrawide main #theTable div.row8 {
+  grid-row: 8/9;
+}
+body.ultrawide main #theTable div.row9 {
+  grid-row: 9/10;
+}
+body.ultrawide main #theTable div.row10 {
+  /*grid-row: 10 / 11;*/
+  grid-row: 7/8;
+}
+body.ultrawide main #theTable div.row11 {
+  /*grid-row: 11 / 12;*/
+  grid-row: 8/9;
+}
+body.ultrawide main #theTable div.col1 {
+  grid-column: 1/2;
+}
+body.ultrawide main #theTable div.col2 {
+  grid-column: 2/3;
+}
+body.ultrawide main #theTable div.col3 {
+  grid-column: 3/4;
+}
+body.ultrawide main #theTable div.col4 {
+  grid-column: 4/5;
+}
+body.ultrawide main #theTable div.col5 {
+  grid-column: 19/20;
+}
+body.ultrawide main #theTable div.col6 {
+  grid-column: 20/21;
+}
+body.ultrawide main #theTable div.col7 {
+  grid-column: 21/22;
+}
+body.ultrawide main #theTable div.col8 {
+  grid-column: 22/23;
+}
+body.ultrawide main #theTable div.col9 {
+  grid-column: 23/24;
+}
+body.ultrawide main #theTable div.col10 {
+  grid-column: 24/25;
+}
+body.ultrawide main #theTable div.col11 {
+  grid-column: 25/26;
+}
+body.ultrawide main #theTable div.col12 {
+  grid-column: 26/27;
+}
+body.ultrawide main #theTable div.col13 {
+  grid-column: 27/28;
+}
+body.ultrawide main #theTable div.col14 {
+  grid-column: 28/29;
+}
+body.ultrawide main #theTable div.col15 {
+  grid-column: 29/30;
+}
+body.ultrawide main #theTable div.col16 {
+  grid-column: 30/31;
+}
+body.ultrawide main #theTable div.col17 {
+  grid-column: 31/32;
+}
+body.ultrawide main #theTable div.col18 {
+  grid-column: 32/33;
+}
+body.ultrawide main #theTable div.col19 {
+  grid-column: 33/34;
+}
+body.ultrawide main #theTable div.row5.col4,
+body.ultrawide main #theTable div.row6.col4 {
+  grid-column: 18/19;
+}
+body.ultrawide main #theTable div.row10.col5,
+body.ultrawide main #theTable div.row11.col5 {
+  grid-column: 5/6;
+}
+body.ultrawide main #theTable div.row10.col6,
+body.ultrawide main #theTable div.row11.col6 {
+  grid-column: 6/7;
+}
+body.ultrawide main #theTable div.row10.col7,
+body.ultrawide main #theTable div.row11.col7 {
+  grid-column: 7/8;
+}
+body.ultrawide main #theTable div.row10.col8,
+body.ultrawide main #theTable div.row11.col8 {
+  grid-column: 8/9;
+}
+body.ultrawide main #theTable div.row10.col9,
+body.ultrawide main #theTable div.row11.col9 {
+  grid-column: 9/10;
+}
+body.ultrawide main #theTable div.row10.col10,
+body.ultrawide main #theTable div.row11.col10 {
+  grid-column: 10/11;
+}
+body.ultrawide main #theTable div.row10.col11,
+body.ultrawide main #theTable div.row11.col11 {
+  grid-column: 11/12;
+}
+body.ultrawide main #theTable div.row10.col12,
+body.ultrawide main #theTable div.row11.col12 {
+  grid-column: 12/13;
+}
+body.ultrawide main #theTable div.row10.col13,
+body.ultrawide main #theTable div.row11.col13 {
+  grid-column: 13/14;
+}
+body.ultrawide main #theTable div.row10.col14,
+body.ultrawide main #theTable div.row11.col14 {
+  grid-column: 14/15;
+}
+body.ultrawide main #theTable div.row10.col15,
+body.ultrawide main #theTable div.row11.col15 {
+  grid-column: 15/15;
+}
+body.ultrawide main #theTable div.row10.col16,
+body.ultrawide main #theTable div.row11.col16 {
+  grid-column: 16/17;
+}
+body.ultrawide main #theTable div.row10.col17,
+body.ultrawide main #theTable div.row11.col17 {
+  grid-column: 17/18;
+}
+body.ultrawide main #theTable div.row10.col18,
+body.ultrawide main #theTable div.row11.col18 {
+  grid-column: 18/19;
+}
+
+body.up main {
+  flex-direction: column-reverse;
+}
+
+body.right main {
+  flex-direction: row;
+}
+
+body.left {
+  /*meaning table on the left now */
+}
+body.left main {
+  flex-direction: row-reverse;
+}
+
+body.screenshot {
+  align-items: center;
+}
+body.screenshot main #details {
+  column-gap: unset;
+}
+body.screenshot main #details div {
+  padding: 4px;
+}
+body.screenshot main #header {
+  display: flex;
+}
+body.screenshot main #theTable {
+  grid-gap: 3px;
+}
+body.screenshot main #theTable #connector {
+  font-size: 80%;
+}
+body.screenshot main #theTable > div:not([class~=nonElement]) {
+  padding: 4px;
+}
+body.screenshot main #theTable > div:not([class~=nonElement]) span:nth-child(2) {
+  /*SYMBOL*/
+}
+body.screenshot main #theTable > div:not([class~=nonElement]) span:nth-child(3) {
+  /*NAME*/
+}
+body.screenshot .hideScreenshot {
+  display: none !important;
+}
+body.screenshot main {
+  place-content: center;
+}
+
+/*# sourceMappingURL=style.css.map */
+
+</style>
+
+  </head>
+  
+  <body translate="no" >
+    <body class="responsive">
+    <canvas id="can"></canvas>
+    <div id="fullscreenBanner"></div>
+    <div class="hideScreenshot" id="navBar">
+      <div id="banner">
+        <a href="http://www.ChemStudent.net">Explore The Elements</a>
+        <div>An interactive Periodic Table</div>
+      </div>
+  
+      <div class="searchContainer"><input placeholder="Search" type="text" id="search1" /><button class="clearBtn" id="clearBtn1" title="Clear Search"><span class='xBtnLabel'>X</span></button></div>
+  
+      <div id="viewControls">
+        <div id="viewMode" title="view mode">
+          <label for="viewModeSelect">View:</label>
+          <select id="viewModeSelect">
+            <option value="responsive" selected>Responsive</option>
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <!--<option value="large">Large</option>-->
+            <option value="wide">Wide</option>
+            <option value="ultrawide">Ultra Wide</option>
+            <option value="vertical">Vertical</option>
+          </select>
+        </div>
+        <div id="layoutMode" title="layout mode">
+          <label for="layoutModeSelect">Table on:</label>
+  
+          <select id="layoutModeSelect">
+            <option id="layout_down" disabled value="down">Bottom</option>
+            <option id="layout_up" disabled value="up">Top</option>
+            <option id="layout_left" disabled value="left">Left</option>
+            <option id="layout_right" disabled value="right">Right</option>
+          </select>
+        </div>
+        <div title="toggle night/day" id="lightMode"><button data-mode="night">🌛️ night</button></div>
+      </div>
+  
+    </div>
+    <main>
+      <div class="hideScreenshot" id="header">
+        <div id="headerCell1">
+          <div id="card">
+            <div class="row1">
+              <div>
+                <span title="Atomic Number" id="cardNumber"></span>
+                <span title="Element Symbol" id="cardSymbol" class="notranslate"></span>
+              </div>
+              <span id="cardSeries"></span>
+            </div>
+            <span id="cardSummary" class="row2"></span>
+            <!--summary and image row2 -->
+          </div>
+        </div>
+        <div id="details"></div>
+      </div>
+  
+     
+      <div>
+        <div id="fieldDefinition" class="hideScreenshot"></div>
+        <div id="theTable">
+  
+          <!--GUIDE MARKERS -->
+          <div id="legend" class="nonElement">
+  
+            <div>Atomic Number</div>
+            <div>Symbol</div>
+            <div>Name</div>
+            <div></div>
+          </div>
+          <div id="minMaxLabel" class="nonElement">
+            <div id="maxLabel">Max: Hydrogen</div>
+            <div id="minLabel">Min: Palladium</div>
+          </div>
+  
+          <div class="nonElement" id="marker_guide" class="col1 group1">
+            <div id="group_marker">Group&nbsp;</div>
+            <div id="period_marker">Period&nbsp;</div>
+          </div>
+          <div class="nonElement header_group col2" id="group1">
+            <div>1</div>
+            <div class="group_label"><a target="_blank" href="https://en.wikipedia.org/wiki/Alkali_metal">Alkali<br />Metals</a></div>
+          </div>
+          <div class="nonElement header_group col3" id="group2">2<div class="group_label"><a target="_blank" href="https://en.wikipedia.org/wiki/Alkaline_earth_metal">Earth<br />Metals</a></div>
+          </div>
+          <div class="nonElement header_group col4" id="group3">3</div>
+          <div class="nonElement header_group col5" id="group4">4</div>
+          <div class="nonElement header_group col6" id="group5">5</div>
+          <div class="nonElement header_group col7" id="group6">6</div>
+          <div class="nonElement header_group col8" id="group7">7</div>
+          <div class="nonElement header_group col9" id="group8">8</div>
+          <div class="nonElement header_group col10" id="group9">9</div>
+          <div class="nonElement header_group col11" id="group10">10</div>
+          <div class="nonElement header_group col12" id="group11">11<div style="display:none;" class="group_label"><a target="_blank" href="https://en.wikipedia.org/wiki/Coinage_metals">Coinage<br />Metals</a></div>
+          </div>
+          <div class="nonElement header_group col13" id="group12">12</div>
+          <div class="nonElement header_group col14" id="group13">13</div>
+          <div class="nonElement header_group col15" id="group14">14</div>
+          <div class="nonElement header_group col16" id="group15">15<div class="group_label"><a target="_blank" href="https://en.wikipedia.org/wiki/Pnictogen">Pnictogens</a></div>
+          </div>
+          <div class="nonElement header_group col17" id="group16">16<div class="group_label"><a target="_blank" href="https://en.wikipedia.org/wiki/Chalcogen">Chalcogens</a></div>
+          </div>
+          <div class="nonElement header_group col18" id="group17">17<div class="group_label"><a target="_blank" href="https://en.wikipedia.org/wiki/Halogen">Halogens</a></div>
+          </div>
+          <div class="nonElement header_group col19" id="group17">18<div class="group_label"><a target="_blank" href="https://en.wikipedia.org/wiki/Noble_gas">Noble<br />Gases</a></div>
+          </div>
+          <div class="nonElement header_period row2" id="period1" style="display:grid">1</div>
+          <div class="nonElement header_period row3" id="period2">2</div>
+          <div class="nonElement header_period row4" id="period3">3</div>
+          <div class="nonElement header_period row5" id="period4">4</div>
+          <div class="nonElement header_period row6" id="period5">5</div>
+          <div class="nonElement header_period row7" id="period6">6</div>
+          <div class="nonElement header_period row8" id="period7">7</div>
+          <div class="nonElement header_period col3 row10" id="period9">6</div>
+          <div class="nonElement header_period col3 row11" id="period10">7</div>
+          <div class="nonElement header_period row9" id="period8">8</div>
+  
+          <!--ELEMENTS -->
+          <div id="H" class="row2 col2 diatomic-nonmetal">
+            <span>1</span>
+            <span>H</span>
+            <span>Hydrogen</span>
+            <span>1.008</span>
+          </div>
+          <div id="He" class="row2 col19 noble-gas">
+            <span>2</span>
+            <span>He</span>
+            <span>Helium</span>
+            <span>4.0026</span>
+          </div>
+          <div id="Li" class="row3 col2 alkali-metal">
+            <span>3</span>
+            <span>Li</span>
+            <span>Lithium</span>
+            <span>6.94</span>
+          </div>
+          <div id="Be" class="row3 col3 alkaline-earth-metal">
+            <span>4</span>
+            <span>Be</span>
+            <span>Beryllium</span>
+            <span>9.01218</span>
+          </div>
+          <div id="B" class="row3 col14 metalloid">
+            <span>5</span>
+            <span>B</span>
+            <span>Boron</span>
+            <span>10.81</span>
+          </div>
+          <div id="C" class="row3 col15 polyatomic-nonmetal">
+            <span>6</span>
+            <span>C</span>
+            <span>Carbon</span>
+            <span>12.011</span>
+          </div>
+          <div id="N" class="row3 col16 diatomic-nonmetal">
+            <span>7</span>
+            <span>N</span>
+            <span>Nitrogen</span>
+            <span>14.007</span>
+          </div>
+          <div id="O" class="row3 col17 diatomic-nonmetal">
+            <span>8</span>
+            <span>O</span>
+            <span>Oxygen</span>
+            <span>15.999</span>
+          </div>
+          <div id="F" class="row3 col18 diatomic-nonmetal">
+            <span>9</span>
+            <span>F</span>
+            <span>Fluorine</span>
+            <span>18.9984</span>
+          </div>
+          <div id="Ne" class="row3 col19 noble-gas">
+            <span>10</span>
+            <span>Ne</span>
+            <span>Neon</span>
+            <span>20.1798</span>
+          </div>
+          <div id="Na" class="row4 col2 alkali-metal">
+            <span>11</span>
+            <span>Na</span>
+            <span>Sodium</span>
+            <span>22.9898</span>
+          </div>
+          <div id="Mg" class="row4 col3 alkaline-earth-metal">
+            <span>12</span>
+            <span>Mg</span>
+            <span>Magnesium</span>
+            <span>24.305</span>
+          </div>
+          <div id="Al" class="row4 col14 post-transition-metal">
+            <span>13</span>
+            <span>Al</span>
+            <span>Aluminium</span>
+            <span>26.9815</span>
+          </div>
+          <div id="Si" class="row4 col15 metalloid">
+            <span>14</span>
+            <span>Si</span>
+            <span>Silicon</span>
+            <span>28.085</span>
+          </div>
+          <div id="P" class="row4 col16 polyatomic-nonmetal">
+            <span>15</span>
+            <span>P</span>
+            <span>Phosphorus</span>
+            <span>30.9738</span>
+          </div>
+          <div id="S" class="row4 col17 polyatomic-nonmetal">
+            <span>16</span>
+            <span>S</span>
+            <span>Sulfur</span>
+            <span>32.06</span>
+          </div>
+          <div id="Cl" class="row4 col18 diatomic-nonmetal">
+            <span>17</span>
+            <span>Cl</span>
+            <span>Chlorine</span>
+            <span>35.45</span>
+          </div>
+          <div id="Ar" class="row4 col19 noble-gas">
+            <span>18</span>
+            <span>Ar</span>
+            <span>Argon</span>
+            <span>39.9481</span>
+          </div>
+          <div id="K" class="row5 col2 alkali-metal">
+            <span>19</span>
+            <span>K</span>
+            <span>Potassium</span>
+            <span>39.0983</span>
+          </div>
+          <div id="Ca" class="row5 col3 alkaline-earth-metal">
+            <span>20</span>
+            <span>Ca</span>
+            <span>Calcium</span>
+            <span>40.0784</span>
+          </div>
+          <div id="Sc" class="row5 col4 transition-metal">
+            <span>21</span>
+            <span>Sc</span>
+            <span>Scandium</span>
+            <span>44.9559</span>
+          </div>
+          <div id="Ti" class="row5 col5 transition-metal">
+            <span>22</span>
+            <span>Ti</span>
+            <span>Titanium</span>
+            <span>47.8671</span>
+          </div>
+          <div id="V" class="row5 col6 transition-metal">
+            <span>23</span>
+            <span>V</span>
+            <span>Vanadium</span>
+            <span>50.9415</span>
+          </div>
+          <div id="Cr" class="row5 col7 transition-metal">
+            <span>24</span>
+            <span>Cr</span>
+            <span>Chromium</span>
+            <span>51.9962</span>
+          </div>
+          <div id="Mn" class="row5 col8 transition-metal">
+            <span>25</span>
+            <span>Mn</span>
+            <span>Manganese</span>
+            <span>54.9380</span>
+          </div>
+          <div id="Fe" class="row5 col9 transition-metal">
+            <span>26</span>
+            <span>Fe</span>
+            <span>Iron</span>
+            <span>55.8452</span>
+          </div>
+          <div id="Co" class="row5 col10 transition-metal">
+            <span>27</span>
+            <span>Co</span>
+            <span>Cobalt</span>
+            <span>58.9332</span>
+          </div>
+          <div id="Ni" class="row5 col11 transition-metal">
+            <span>28</span>
+            <span>Ni</span>
+            <span>Nickel</span>
+            <span>58.6934</span>
+          </div>
+          <div id="Cu" class="row5 col12 transition-metal">
+            <span>29</span>
+            <span>Cu</span>
+            <span>Copper</span>
+            <span>63.5463</span>
+          </div>
+          <div id="Zn" class="row5 col13 transition-metal">
+            <span>30</span>
+            <span>Zn</span>
+            <span>Zinc</span>
+            <span>65.382</span>
+          </div>
+          <div id="Ga" class="row5 col14 post-transition-metal">
+            <span>31</span>
+            <span>Ga</span>
+            <span>Gallium</span>
+            <span>69.7231</span>
+          </div>
+          <div id="Ge" class="row5 col15 metalloid">
+            <span>32</span>
+            <span>Ge</span>
+            <span>Germanium</span>
+            <span>72.6308</span>
+          </div>
+          <div id="As" class="row5 col16 metalloid">
+            <span>33</span>
+            <span>As</span>
+            <span>Arsenic</span>
+            <span>74.9216</span>
+          </div>
+          <div id="Se" class="row5 col17 polyatomic-nonmetal">
+            <span>34</span>
+            <span>Se</span>
+            <span>Selenium</span>
+            <span>78.9718</span>
+          </div>
+          <div id="Br" class="row5 col18 diatomic-nonmetal">
+            <span>35</span>
+            <span>Br</span>
+            <span>Bromine</span>
+            <span>79.904</span>
+          </div>
+          <div id="Kr" class="row5 col19 noble-gas">
+            <span>36</span>
+            <span>Kr</span>
+            <span>Krypton</span>
+            <span>83.7982</span>
+          </div>
+          <div id="Rb" class="row6 col2 alkali-metal">
+            <span>37</span>
+            <span>Rb</span>
+            <span>Rubidium</span>
+            <span>85.4678</span>
+          </div>
+          <div id="Sr" class="row6 col3 alkaline-earth-metal">
+            <span>38</span>
+            <span>Sr</span>
+            <span>Strontium</span>
+            <span>87.621</span>
+          </div>
+          <div id="Y" class="row6 col4 transition-metal">
+            <span>39</span>
+            <span>Y</span>
+            <span>Yttrium</span>
+            <span>88.9058</span>
+          </div>
+          <div id="Zr" class="row6 col5 transition-metal">
+            <span>40</span>
+            <span>Zr</span>
+            <span>Zirconium</span>
+            <span>91.2242</span>
+          </div>
+          <div id="Nb" class="row6 col6 transition-metal">
+            <span>41</span>
+            <span>Nb</span>
+            <span>Niobium</span>
+            <span>92.9064</span>
+          </div>
+          <div id="Mo" class="row6 col7 transition-metal">
+            <span>42</span>
+            <span>Mo</span>
+            <span>Molybdenum</span>
+            <span>95.951</span>
+          </div>
+          <div id="Tc" class="row6 col8 transition-metal">
+            <span>43</span>
+            <span>Tc</span>
+            <span>Technetium</span>
+            <span>98</span>
+          </div>
+          <div id="Ru" class="row6 col9 transition-metal">
+            <span>44</span>
+            <span>Ru</span>
+            <span>Ruthenium</span>
+            <span>101.072</span>
+          </div>
+          <div id="Rh" class="row6 col10 transition-metal">
+            <span>45</span>
+            <span>Rh</span>
+            <span>Rhodium</span>
+            <span>102.9055</span>
+          </div>
+          <div id="Pd" class="row6 col11 transition-metal">
+            <span>46</span>
+            <span>Pd</span>
+            <span>Palladium</span>
+            <span>106.421</span>
+          </div>
+          <div id="Ag" class="row6 col12 transition-metal">
+            <span>47</span>
+            <span>Ag</span>
+            <span>Silver</span>
+            <span>107.8682</span>
+          </div>
+          <div id="Cd" class="row6 col13 transition-metal">
+            <span>48</span>
+            <span>Cd</span>
+            <span>Cadmium</span>
+            <span>112.4144</span>
+          </div>
+          <div id="In" class="row6 col14 post-transition-metal">
+            <span>49</span>
+            <span>In</span>
+            <span>Indium</span>
+            <span>114.8181</span>
+          </div>
+          <div id="Sn" class="row6 col15 post-transition-metal">
+            <span>50</span>
+            <span>Sn</span>
+            <span>Tin</span>
+            <span>118.7107</span>
+          </div>
+          <div id="Sb" class="row6 col16 metalloid">
+            <span>51</span>
+            <span>Sb</span>
+            <span>Antimony</span>
+            <span>121.7601</span>
+          </div>
+          <div id="Te" class="row6 col17 metalloid">
+            <span>52</span>
+            <span>Te</span>
+            <span>Tellurium</span>
+            <span>127.603</span>
+          </div>
+          <div id="I" class="row6 col18 diatomic-nonmetal">
+            <span>53</span>
+            <span>I</span>
+            <span>Iodine</span>
+            <span>126.9045</span>
+          </div>
+          <div id="Xe" class="row6 col19 noble-gas">
+            <span>54</span>
+            <span>Xe</span>
+            <span>Xenon</span>
+            <span>131.2936</span>
+          </div>
+          <div id="Cs" class="row7 col2 alkali-metal">
+            <span>55</span>
+            <span>Cs</span>
+            <span>Cesium</span>
+            <span>132.9055</span>
+          </div>
+          <div id="Ba" class="row7 col3 alkaline-earth-metal">
+            <span>56</span>
+            <span>Ba</span>
+            <span>Barium</span>
+            <span>137.3277</span>
+          </div>
+          <div id="La" class="row10 col4 lanthanide">
+            <span>57</span>
+            <span>La</span>
+            <span>Lanthanum</span>
+            <span>138.9055</span>
+          </div>
+          <div id="Ce" class="row10 col5 lanthanide">
+            <span>58</span>
+            <span>Ce</span>
+            <span>Cerium</span>
+            <span>140.1161</span>
+          </div>
+          <div id="Pr" class="row10 col6 lanthanide">
+            <span>59</span>
+            <span>Pr</span>
+            <span>Praseodymium</span>
+            <span>140.9077</span>
+          </div>
+          <div id="Nd" class="row10 col7 lanthanide">
+            <span>60</span>
+            <span>Nd</span>
+            <span>Neodymium</span>
+            <span>144.2423</span>
+          </div>
+          <div id="Pm" class="row10 col8 lanthanide">
+            <span>61</span>
+            <span>Pm</span>
+            <span>Promethium</span>
+            <span>145</span>
+          </div>
+          <div id="Sm" class="row10 col9 lanthanide">
+            <span>62</span>
+            <span>Sm</span>
+            <span>Samarium</span>
+            <span>150.362</span>
+          </div>
+          <div id="Eu" class="row10 col10 lanthanide">
+            <span>63</span>
+            <span>Eu</span>
+            <span>Europium</span>
+            <span>151.9641</span>
+          </div>
+          <div id="Gd" class="row10 col11 lanthanide">
+            <span>64</span>
+            <span>Gd</span>
+            <span>Gadolinium</span>
+            <span>157.253</span>
+          </div>
+          <div id="Tb" class="row10 col12 lanthanide">
+            <span>65</span>
+            <span>Tb</span>
+            <span>Terbium</span>
+            <span>158.9254</span>
+          </div>
+          <div id="Dy" class="row10 col13 lanthanide">
+            <span>66</span>
+            <span>Dy</span>
+            <span>Dysprosium</span>
+            <span>162.5001</span>
+          </div>
+          <div id="Ho" class="row10 col14 lanthanide">
+            <span>67</span>
+            <span>Ho</span>
+            <span>Holmium</span>
+            <span>164.9303</span>
+          </div>
+          <div id="Er" class="row10 col15 lanthanide">
+            <span>68</span>
+            <span>Er</span>
+            <span>Erbium</span>
+            <span>167.2593</span>
+          </div>
+          <div id="Tm" class="row10 col16 lanthanide">
+            <span>69</span>
+            <span>Tm</span>
+            <span>Thulium</span>
+            <span>168.9342</span>
+          </div>
+          <div id="Yb" class="row10 col17 lanthanide">
+            <span>70</span>
+            <span>Yb</span>
+            <span>Ytterbium</span>
+            <span>173.0451</span>
+          </div>
+          <div id="Lu" class="row10 col18 lanthanide">
+            <span>71</span>
+            <span>Lu</span>
+            <span>Lutetium</span>
+            <span>174.9668</span>
+          </div>
+          <div id="Hf" class="row7 col5 transition-metal">
+            <span>72</span>
+            <span>Hf</span>
+            <span>Hafnium</span>
+            <span>178.492</span>
+          </div>
+          <div id="Ta" class="row7 col6 transition-metal">
+            <span>73</span>
+            <span>Ta</span>
+            <span>Tantalum</span>
+            <span>180.9479</span>
+          </div>
+          <div id="W" class="row7 col7 transition-metal">
+            <span>74</span>
+            <span>W</span>
+            <span>Tungsten</span>
+            <span>183.841</span>
+          </div>
+          <div id="Re" class="row7 col8 transition-metal">
+            <span>75</span>
+            <span>Re</span>
+            <span>Rhenium</span>
+            <span>186.2071</span>
+          </div>
+          <div id="Os" class="row7 col9 transition-metal">
+            <span>76</span>
+            <span>Os</span>
+            <span>Osmium</span>
+            <span>190.233</span>
+          </div>
+          <div id="Ir" class="row7 col10 transition-metal">
+            <span>77</span>
+            <span>Ir</span>
+            <span>Iridium</span>
+            <span>192.2173</span>
+          </div>
+          <div id="Pt" class="row7 col11 transition-metal">
+            <span>78</span>
+            <span>Pt</span>
+            <span>Platinum</span>
+            <span>195.0849</span>
+          </div>
+          <div id="Au" class="row7 col12 transition-metal">
+            <span>79</span>
+            <span>Au</span>
+            <span>Gold</span>
+            <span>196.9666</span>
+          </div>
+          <div id="Hg" class="row7 col13 transition-metal">
+            <span>80</span>
+            <span>Hg</span>
+            <span>Mercury</span>
+            <span>200.5923</span>
+          </div>
+          <div id="Tl" class="row7 col14 post-transition-metal">
+            <span>81</span>
+            <span>Tl</span>
+            <span>Thallium</span>
+            <span>204.38</span>
+          </div>
+          <div id="Pb" class="row7 col15 post-transition-metal">
+            <span>82</span>
+            <span>Pb</span>
+            <span>Lead</span>
+            <span>207.21</span>
+          </div>
+          <div id="Bi" class="row7 col16 post-transition-metal">
+            <span>83</span>
+            <span>Bi</span>
+            <span>Bismuth</span>
+            <span>208.9804</span>
+          </div>
+          <div id="Po" class="row7 col17 post-transition-metal">
+            <span>84</span>
+            <span>Po</span>
+            <span>Polonium</span>
+            <span>209</span>
+          </div>
+          <div id="At" class="row7 col18 metalloid">
+            <span>85</span>
+            <span>At</span>
+            <span>Astatine</span>
+            <span>210</span>
+          </div>
+          <div id="Rn" class="row7 col19 noble-gas">
+            <span>86</span>
+            <span>Rn</span>
+            <span>Radon</span>
+            <span>222</span>
+          </div>
+          <div id="Fr" class="row8 col2 alkali-metal">
+            <span>87</span>
+            <span>Fr</span>
+            <span>Francium</span>
+            <span>223</span>
+          </div>
+          <div id="Ra" class="row8 col3 alkaline-earth-metal">
+            <span>88</span>
+            <span>Ra</span>
+            <span>Radium</span>
+            <span>226</span>
+          </div>
+          <div id="Ac" class="row11 col4 actinide">
+            <span>89</span>
+            <span>Ac</span>
+            <span>Actinium</span>
+            <span>227</span>
+          </div>
+          <div id="Th" class="row11 col5 actinide">
+            <span>90</span>
+            <span>Th</span>
+            <span>Thorium</span>
+            <span>232.0377</span>
+          </div>
+          <div id="Pa" class="row11 col6 actinide">
+            <span>91</span>
+            <span>Pa</span>
+            <span>Protactinium</span>
+            <span>231.0359</span>
+          </div>
+          <div id="U" class="row11 col7 actinide">
+            <span>92</span>
+            <span>U</span>
+            <span>Uranium</span>
+            <span>238.0289</span>
+          </div>
+          <div id="Np" class="row11 col8 actinide">
+            <span>93</span>
+            <span>Np</span>
+            <span>Neptunium</span>
+            <span>237</span>
+          </div>
+          <div id="Pu" class="row11 col9 actinide">
+            <span>94</span>
+            <span>Pu</span>
+            <span>Plutonium</span>
+            <span>244</span>
+          </div>
+          <div id="Am" class="row11 col10 actinide">
+            <span>95</span>
+            <span>Am</span>
+            <span>Americium</span>
+            <span>243</span>
+          </div>
+          <div id="Cm" class="row11 col11 actinide">
+            <span>96</span>
+            <span>Cm</span>
+            <span>Curium</span>
+            <span>247</span>
+          </div>
+          <div id="Bk" class="row11 col12 actinide">
+            <span>97</span>
+            <span>Bk</span>
+            <span>Berkelium</span>
+            <span>247</span>
+          </div>
+          <div id="Cf" class="row11 col13 actinide">
+            <span>98</span>
+            <span>Cf</span>
+            <span>Californium</span>
+            <span>251</span>
+          </div>
+          <div id="Es" class="row11 col14 actinide">
+            <span>99</span>
+            <span>Es</span>
+            <span>Einsteinium</span>
+            <span>252</span>
+          </div>
+          <div id="Fm" class="row11 col15 actinide">
+            <span>100</span>
+            <span>Fm</span>
+            <span>Fermium</span>
+            <span>257</span>
+          </div>
+          <div id="Md" class="row11 col16 actinide">
+            <span>101</span>
+            <span>Md</span>
+            <span>Mendelevium</span>
+            <span>258</span>
+          </div>
+          <div id="No" class="row11 col17 actinide">
+            <span>102</span>
+            <span>No</span>
+            <span>Nobelium</span>
+            <span>259</span>
+          </div>
+          <div id="Lr" class="row11 col18 actinide">
+            <span>103</span>
+            <span>Lr</span>
+            <span>Lawrencium</span>
+            <span>266</span>
+          </div>
+          <div id="Rf" class="row8 col5 transition-metal">
+            <span>104</span>
+            <span>Rf</span>
+            <span>Rutherfordium</span>
+            <span>267</span>
+          </div>
+          <div id="Db" class="row8 col6 transition-metal">
+            <span>105</span>
+            <span>Db</span>
+            <span>Dubnium</span>
+            <span>268</span>
+          </div>
+          <div id="Sg" class="row8 col7 transition-metal">
+            <span>106</span>
+            <span>Sg</span>
+            <span>Seaborgium</span>
+            <span>269</span>
+          </div>
+          <div id="Bh" class="row8 col8 transition-metal">
+            <span>107</span>
+            <span>Bh</span>
+            <span>Bohrium</span>
+            <span>270</span>
+          </div>
+          <div id="Hs" class="row8 col9 transition-metal">
+            <span>108</span>
+            <span>Hs</span>
+            <span>Hassium</span>
+            <span>269</span>
+          </div>
+          <div id="Mt" class="row8 col10 unknown">
+            <span>109</span>
+            <span>Mt</span>
+            <span>Meitnerium</span>
+            <span>278</span>
+          </div>
+          <div id="Ds" class="row8 col11 unknown">
+            <span>110</span>
+            <span>Ds</span>
+            <span>Darmstadtium</span>
+            <span>281</span>
+          </div>
+          <div id="Rg" class="row8 col12 unknown">
+            <span>111</span>
+            <span>Rg</span>
+            <span>Roentgenium</span>
+            <span>282</span>
+          </div>
+          <div id="Cn" class="row8 col13 unknown">
+            <span>112</span>
+            <span>Cn</span>
+            <span>Copernicium</span>
+            <span>285</span>
+          </div>
+          <div id="Nh" class="row8 col14 unknown">
+            <span>113</span>
+            <span>Nh</span>
+            <span>Nihonium</span>
+            <span>286</span>
+          </div>
+          <div id="Fl" class="row8 col15 unknown">
+            <span>114</span>
+            <span>Fl</span>
+            <span>Flerovium</span>
+            <span>289</span>
+          </div>
+          <div id="Mc" class="row8 col16 unknown">
+            <span>115</span>
+            <span>Mc</span>
+            <span>Moscovium</span>
+            <span>289</span>
+          </div>
+          <div id="Lv" class="row8 col17 unknown">
+            <span>116</span>
+            <span>Lv</span>
+            <span>Livermorium</span>
+            <span>293</span>
+          </div>
+          <div id="Ts" class="row8 col18 unknown">
+            <span>117</span>
+            <span>Ts</span>
+            <span>Tennessine</span>
+            <span>294</span>
+          </div>
+          <div id="Og" class="row8 col19 unknown">
+            <span>118</span>
+            <span>Og</span>
+            <span>Oganesson</span>
+            <span>294</span>
+          </div>
+          <div id="Uue" class="row9 col2 unknown">
+            <span>119</span>
+            <span>Uue</span>
+            <span>Ununennium</span>
+            <span>315</span>
+          </div>
+          <div id="connector" class="nonElement">
+            <div>
+              <div>57-71</div>
+              <div id="connector_label1"><a href="https://en.wikipedia.org/wiki/Lanthanide" target="_blank">Lanthanides</a></div>
+            </div>
+            <div>
+              <div>89-103</div>
+              <div id="connector_label2"><a href="https://en.wikipedia.org/wiki/Actinide" target="_blank">Actinides</a></div>
+            </div>
+  
+          </div>
+          <div id="controls" class="nonElement">
+  
+            <div id="compControls" class="hideScreenshot">
+              <div>
+                <label id="currentElement" for="compList"></label></br>
+                <select id="compList"></select>
+              </div>
+              <select id="compOperator">
+                <option value="less than">less than</option>
+                <option value="more than">more than</option>
+                <option value="contains">contains</option>
+                <option value="equals">equals</option>
+  
+              </select>
+              <input id="compValue" type="text" placeholder="enter val" />
+            </div>
+            <div class="hideScreenshot searchContainer">
+              <input placeholder="Search" type="text" id="search2" />
+              <button id="clearBtn2" class="clearBtn" title="Clear Search">
+                <span class='xBtnLabel'>X</span>
+              </button>
+            </div>
+            <br />
+            <div id="colors">
+              <div><label for="startColor" title="starting color for ranges">Min:</label><input type="color" id="startColor" value="#ffffff" /></div>
+              <div><label for="endColor" title="ending color for ranges">Max:</label><input type="color" id="endColor" value="#000000" /></div>
+              <div id="logarithmic_container">
+                <label for="logarithmic">Scale:</label>
+                <button id="logarithmic">Linear ╱️</button>
+              </div>
+            </div>
+  
+            <div id="tempControls">
+              <div class="row1">
+                <span id="phaseAtLabel">Phase at:</span>
+                <div><input type="number" id="celsiusLabel"></input><span class="tempUnits">°C</span></div>
+                <div><input type="number" id="fahrenheitLabel"></input><span class="tempUnits">°F</span></div>
+                <div><input type="number" id="kelvinLabel"></input><span class="tempUnits"> K</span></div>
+              </div>
+              <input class="row2" id="tempSlider" type="range" min="0" max="6000" step="1" value="273" title="temperature" />
+            </div>
+  
+          </div>
+        </div>
+      </div>
+    </main>
+    <ul id="footer">
+      <li class="logo notranslate">Cs</li>
+      <li><a target="_blank" href="http://www.ChemStudent.net">ChemStudent.net</a></li>
+      <li class="hideScreenshot">built with <a target="_blank" href="https://github.com/sweaver2112/periodic-table-data">sweaver2112/periodic-table-data</a></li>
+      <li><label for="screenshotMode">Poster Mode:</label><input id="screenshotMode" type="checkbox" />
+        &nbsp;&nbsp;
+        <div class="hideScreenshot" id="google_translate_element"></div>
+        <script type="text/javascript">
+          function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+              pageLanguage: 'en',
+            },'google_translate_element');
+            let gt = document.querySelector('.goog-te-gadget');
+            gt.removeChild(gt.childNodes[1]);
+            gt.removeChild(gt.childNodes[1]);
+          }
+        </script>
+        <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
+        </script>
+       </li>
+    </ul>
+  </body>
+    
+<script src='https://assets.codepen.io/1197275/pTable.js'></script>
+<script src='https://assets.codepen.io/1197275/elementPics.js'></script>
+<script src='https://assets.codepen.io/1197275/glossary.js'></script>
+<script>
+const _0x431cf4=_0x1bce;(function(_0x1472b1,_0x1fe82b){const _0x3ec6d8=_0x1bce,_0x12c03d=_0x1472b1();while(!![]){try{const _0xbb024=-parseInt(_0x3ec6d8(0x1ba))/0x1*(-parseInt(_0x3ec6d8(0x173))/0x2)+parseInt(_0x3ec6d8(0x1df))/0x3+-parseInt(_0x3ec6d8(0x107))/0x4+parseInt(_0x3ec6d8(0x1ce))/0x5*(-parseInt(_0x3ec6d8(0xe7))/0x6)+parseInt(_0x3ec6d8(0x16f))/0x7+-parseInt(_0x3ec6d8(0x1d4))/0x8+-parseInt(_0x3ec6d8(0xe8))/0x9*(-parseInt(_0x3ec6d8(0xe4))/0xa);if(_0xbb024===_0x1fe82b)break;else _0x12c03d['push'](_0x12c03d['shift']());}catch(_0x4a8cb8){_0x12c03d['push'](_0x12c03d['shift']());}}}(_0x27d3,0xb24e8));const _0x5471f5=(function(){let _0x13183c=!![];return function(_0x4b39cd,_0xc83e6c){const _0x377754=_0x13183c?function(){const _0x2587cd=_0x1bce;if(_0xc83e6c){const _0x11500a=_0xc83e6c[_0x2587cd(0x171)](_0x4b39cd,arguments);return _0xc83e6c=null,_0x11500a;}}:function(){};return _0x13183c=![],_0x377754;};}()),_0x3c8033=_0x5471f5(this,function(){const _0x5c5591=_0x1bce;return _0x3c8033['toString']()[_0x5c5591(0x216)](_0x5c5591(0x1b5))[_0x5c5591(0x142)]()[_0x5c5591(0x20c)](_0x3c8033)[_0x5c5591(0x216)](_0x5c5591(0x1b5));});_0x3c8033();const _0x17208e=(function(){let _0x481edd=!![];return function(_0x5c9b8d,_0x2b09dd){const _0x12ed51=_0x481edd?function(){const _0x2648ce=_0x1bce;if(_0x2b09dd){const _0x36e02e=_0x2b09dd[_0x2648ce(0x171)](_0x5c9b8d,arguments);return _0x2b09dd=null,_0x36e02e;}}:function(){};return _0x481edd=![],_0x12ed51;};}()),_0x3de61a=_0x17208e(this,function(){const _0x14253b=_0x1bce;let _0x5cc21e;try{const _0x38519a=Function('return\x20(function()\x20'+_0x14253b(0x222)+');');_0x5cc21e=_0x38519a();}catch(_0x3e0deb){_0x5cc21e=window;}const _0x16fa62=_0x5cc21e[_0x14253b(0x186)]=_0x5cc21e[_0x14253b(0x186)]||{},_0x12c8fd=[_0x14253b(0x152),_0x14253b(0x190),_0x14253b(0xfa),_0x14253b(0x1d1),_0x14253b(0x1b7),_0x14253b(0xfe),_0x14253b(0x126)];for(let _0x4e3515=0x0;_0x4e3515<_0x12c8fd['length'];_0x4e3515++){const _0x333926=_0x17208e['constructor'][_0x14253b(0x21e)][_0x14253b(0x1aa)](_0x17208e),_0x4af464=_0x12c8fd[_0x4e3515],_0x47f92b=_0x16fa62[_0x4af464]||_0x333926;_0x333926[_0x14253b(0x1de)]=_0x17208e[_0x14253b(0x1aa)](_0x17208e),_0x333926['toString']=_0x47f92b['toString'][_0x14253b(0x1aa)](_0x47f92b),_0x16fa62[_0x4af464]=_0x333926;}});_0x3de61a();var body=document[_0x431cf4(0x19b)](_0x431cf4(0x11a));body[_0x431cf4(0x100)](_0x431cf4(0x1c6),!![]);var card=document[_0x431cf4(0x19b)](_0x431cf4(0x1a2)),c1=document[_0x431cf4(0x19b)]('#startColor'),c2=document[_0x431cf4(0x19b)](_0x431cf4(0x185)),currentViewMode='responsive',availableProperties=new Set(),isTableMode,isDetailsMode,elementEls=[...theTable['querySelectorAll'](':scope\x20>\x20\x20div:not([class~=\x27nonElement\x27])')];const labelMap={'cpk_hex':_0x431cf4(0x196),'electron_configuration':_0x431cf4(0x157),'electron_configuration_semantic':_0x431cf4(0x204),'electronegativity_pauling':_0x431cf4(0x172),'ionization_energies':_0x431cf4(0x1ec),'phase':_0x431cf4(0x10a)},superscripts={0x0:'⁰',0x1:'¹',0x2:'²',0x3:'³',0x4:'⁴',0x5:'⁵',0x6:'⁶',0x7:'⁷',0x8:'⁸',0x9:'⁹'},unitsMap={'atomic_mass':_0x431cf4(0x131),'boiling_point.celsius':'°','melting_point.celsius':'°','boiling_point.fahrenheit':'°','melting_point.fahrenheit':'°','boiling_point.kelvin':'K','melting_point.kelvin':'K','electron_affinity':_0x431cf4(0x20d),'electronegativity_pauling':_0x431cf4(0x20d),'ionization_energies':_0x431cf4(0x20d),'hardness.radius':'pm','hardness.vickers':_0x431cf4(0x208),'hardness.brinell':'MPa','hardness.mohs':'MPa','modulus.bulk':_0x431cf4(0x137),'density.shear':_0x431cf4(0x137),'density.young':_0x431cf4(0x137),'density.stp':'kg/m³','density.liquid':'kg/m³','conductivity.thermal':_0x431cf4(0x113),'conductivity.electric':_0x431cf4(0x1c9),'heat.specific':_0x431cf4(0xea),'heat.fusion':_0x431cf4(0x20d),'heat.vaporization':_0x431cf4(0x20d),'heat.molar':_0x431cf4(0xe6),'abundance.universe':'%','abundance.solar':'%','abundance.meteor':'%','abundance.crust':'%','abundance.human':'%','radius.calculated':'pm','radius.empirical':'pm','radius.covalent':'pm','radius.vanderwaals':'pm','discovered':_0x431cf4(0x209),'magnetic_susceptibility.mass':_0x431cf4(0x1f1),'magnetic_susceptibility.molar':_0x431cf4(0x163),'neel_point':'K','speed_of_sound':_0x431cf4(0x147),'superconducting_point':'K','resistivity':_0x431cf4(0xf2),'thermal_expansion':'K⁻¹','half_life':_0x431cf4(0x209),'lifetime':'year','energy_levels':'e⁻️','lattice_constants':'pm','curie_point':'K'},colorMap={'atomic_number':{'start':'#e38ce3','end':_0x431cf4(0x1b2)},'boiling_point':{'start':_0x431cf4(0x151),'end':_0x431cf4(0x158)},'melting_point':{'start':_0x431cf4(0x151),'end':'#ff0040'},'abundance':{'start':_0x431cf4(0x1eb),'end':_0x431cf4(0x20f)},'density':{'start':_0x431cf4(0xf1),'end':'#ffff00'},'atomic_mass':{'start':'#e38ce3','end':_0x431cf4(0xed)},'discovered':{'start':'#0f00ff','end':'#c82828'},'electron_affinity':{'start':'#ffffff','end':_0x431cf4(0xdf)},'electronegativity_pauling':{'start':_0x431cf4(0x101),'end':_0x431cf4(0x10c)},'hardness':{'start':'#d9c4e4','end':_0x431cf4(0x181)},'heat':{'start':_0x431cf4(0x1da),'end':_0x431cf4(0x14a)},'density':{'start':_0x431cf4(0x1dd),'end':_0x431cf4(0xed)},'radius':{'start':_0x431cf4(0x215),'end':_0x431cf4(0x16c)},'conductivity':{'start':_0x431cf4(0x19a),'end':_0x431cf4(0x199)},'modulus':{'start':_0x431cf4(0x189),'end':'#0a40ff'}},strings={'night':_0x431cf4(0x153),'day':_0x431cf4(0x1f7)},categoryColors={'unknown':_0x431cf4(0x140),'alkali\x20metal':'hsl(48deg,\x2077%,\x2064%)','alkaline\x20earth\x20metal':_0x431cf4(0x21d),'lanthanide':_0x431cf4(0x193),'actinide':_0x431cf4(0xde),'transition\x20metal':_0x431cf4(0x1bd),'metalloid':'hsl(165deg,\x2058%,\x2076%)','polyatomic\x20nonmetal':_0x431cf4(0xe0),'diatomic\x20nonmetal':_0x431cf4(0xe0),'post-transition\x20metal':_0x431cf4(0x1a4),'noble\x20gas':'hsl(300deg,\x2074%,\x2082%)','solid':_0x431cf4(0x177),'liquid':_0x431cf4(0x136),'gas':_0x431cf4(0x217),'s-block':_0x431cf4(0x195),'d-block':_0x431cf4(0x212),'p-block':_0x431cf4(0x187),'f-block':_0x431cf4(0x178),'diamagnetic':'cornflowerblue','paramagnetic':_0x431cf4(0x187),'ferromagnetic':_0x431cf4(0x1e0),'antiferromagnetic':_0x431cf4(0x178),'monoatomic':_0x431cf4(0x177),'diatomic':_0x431cf4(0x217),'simple\x20hexagonal':_0x431cf4(0x217),'body-centered\x20cubic':_0x431cf4(0x177),'face-centered\x20cubic':_0x431cf4(0x136),'simple\x20trigonal':_0x431cf4(0x105),'simple\x20monoclinic':_0x431cf4(0x170),'base-centered\x20monoclinic':_0x431cf4(0x214),'centered\x20tetragonal':_0x431cf4(0x194),'base\x20orthorhombic':_0x431cf4(0x148),'face-centered\x20orthorhombic':_0x431cf4(0x212),'simple\x20triclinic':_0x431cf4(0xf4),'tetrahedral\x20packing':_0x431cf4(0x115),'simple\x20orthorhombic':_0x431cf4(0x17d),'simple\x20cubic':_0x431cf4(0x1fb),'alphaemission':_0x431cf4(0x136),'betadecay':_0x431cf4(0x217),'betaplusdecay':_0x431cf4(0x148),'conductor':_0x431cf4(0x217),'semiconductor':'#bbf5bb','insulator':'#37e1e1'},compFunctions={'less\x20than':elementLessThan,'more\x20than':elementMoreThan,'equals':elementEquals,'contains':elementContains};var doNotDisplay=[_0x431cf4(0x1e2),_0x431cf4(0x122),_0x431cf4(0xdd),'source',_0x431cf4(0x110),_0x431cf4(0x1f0)];let lanth=0x0,act=0x0;pTable[_0x431cf4(0x124)](_0x346221=>{const _0xc9e5b7=_0x431cf4;_0x346221[_0xc9e5b7(0x219)]&&(_0x346221[_0xc9e5b7(0x219)]={'celsius':toRounded(KtoC(_0x346221[_0xc9e5b7(0x219)]),0x2),'fahrenheit':toRounded(KtoF(_0x346221[_0xc9e5b7(0x219)]),0x2),'kelvin':_0x346221[_0xc9e5b7(0x219)]}),_0x346221[_0xc9e5b7(0x1d0)]&&(_0x346221['melting_point']={'celsius':toRounded(KtoC(_0x346221['melting_point']),0x2),'fahrenheit':toRounded(KtoF(_0x346221['melting_point']),0x2),'kelvin':_0x346221[_0xc9e5b7(0x1d0)]});}),pTable[_0x431cf4(0x1e4)](_0x1b7989=>_0x1b7989[_0x431cf4(0x1db)]==_0x431cf4(0x210))[_0x431cf4(0x124)]((_0x524197,_0x8b799e)=>{const _0x502547=_0x431cf4;_0x524197[_0x502547(0x1f0)]=_0x8b799e+_0x524197['group'],_0x524197[_0x502547(0x110)]=0x9;}),pTable[_0x431cf4(0x1e4)](_0x87bf8a=>_0x87bf8a[_0x431cf4(0x1db)]==_0x431cf4(0x130))['forEach']((_0x30b258,_0x13db47)=>{const _0x2fec1a=_0x431cf4;_0x30b258[_0x2fec1a(0x1f0)]=_0x13db47+_0x30b258[_0x2fec1a(0x160)],_0x30b258[_0x2fec1a(0x110)]=0xa;}),elementEls[_0x431cf4(0x124)]((_0x3286d4,_0x37401c)=>{const _0x267a3c=_0x431cf4;let _0xe82965=getChemicalElement(_0x3286d4['id']);_0x3286d4[_0x267a3c(0xf7)][0x1][_0x267a3c(0x12c)][_0x267a3c(0x18f)](_0x267a3c(0x12d)),_0x3286d4[_0x267a3c(0x117)]=0x0,_0x3286d4[_0x267a3c(0xf7)][0x2]['style']['fontVariationSettings']=_0x267a3c(0x10e)+Math[_0x267a3c(0x1ed)](0x6e,0x28a/getEstimatedWordLength(_0xe82965[_0x267a3c(0x1e2)])),_0x3286d4['addEventListener']('click',async function(_0x372b1f){const _0x5f5367=_0x267a3c;_0x372b1f['stopPropagation'](),elementEls[_0x5f5367(0x124)](_0x5b7250=>{const _0x51b8e0=_0x5f5367;_0x5b7250['classList'][_0x51b8e0(0x1c2)](_0x51b8e0(0x102)),_0x5b7250[_0x51b8e0(0x221)]['filter']=_0x51b8e0(0x1f8);}),_0x3286d4['classList'][_0x5f5367(0x18f)](_0x5f5367(0x102)),isTableMode=!![],isDetailsMode=![];let _0x18cc75=new Image(),_0x137729='';if(elementImages[_0xe82965[_0x5f5367(0x122)]]){let _0x444f32=_0x5f5367(0x1bb)+elementImages[_0xe82965['symbol']];await loadImage(_0x18cc75,_0x444f32),_0x18cc75['id']='element_image',_0x18cc75[_0x5f5367(0x18a)]=_0x5f5367(0x12a)+_0xe82965['name']+'.',_0x18cc75[_0x5f5367(0x1cc)]=_0x5f5367(0x12a)+_0xe82965[_0x5f5367(0x1e2)]+'.',_0x137729=_0x5f5367(0x1d7)+_0x18cc75['outerHTML']+_0x5f5367(0x1d6);}let _0x48503d='#'+_0xe82965[_0x5f5367(0x1fa)];var _0x4a9f78=_0x5f5367(0x111)+_0x48503d+_0x5f5367(0x125)+_0x48503d;banner[_0x5f5367(0x221)][_0x5f5367(0x1af)]=document[_0x5f5367(0x11a)][_0x5f5367(0x12c)]['contains'](_0x5f5367(0x132))?'':_0x4a9f78,cardNumber[_0x5f5367(0x12b)]=_0x5f5367(0x168)+_0xe82965[_0x5f5367(0x198)]+_0x5f5367(0x1f3),cardSymbol['innerHTML']=_0x5f5367(0x168)+_0xe82965['symbol']+'</span>',cardSymbol[_0x5f5367(0xf7)][0x0]['id']=_0x5f5367(0x122),symbol['setAttribute'](_0x5f5367(0x1a1),_0x4a9f78),symbol[_0x5f5367(0x221)][_0x5f5367(0x1af)]=document[_0x5f5367(0x11a)][_0x5f5367(0x12c)][_0x5f5367(0x145)](_0x5f5367(0x132))?'':_0x4a9f78;let _0x284fa9=_0xe82965['series'][_0x5f5367(0x18d)](/unknown|.*/i)[0x0],_0x13c2a2=_0xe82965[_0x5f5367(0x174)],_0x225492=_0x13c2a2!=undefined&&_0x13c2a2!=_0x5f5367(0x14c)&&_0x13c2a2>0x0,_0x3c1960=_0x225492?_0x5f5367(0x1c3):'',_0x4ac2f3=_0xe82965[_0x5f5367(0x198)]>0x2a&&/synthetic|artificial/i[_0x5f5367(0x13a)](_0xe82965[_0x5f5367(0xdd)][_0x5f5367(0x18d)](/<p>.*?<\/p>/)[0x0])?_0x5f5367(0x112):'',_0x32af71=_0x4ac2f3||_0x3c1960?_0x5f5367(0x168)+_0x4ac2f3+_0x3c1960+_0x5f5367(0x1f3):'',_0x3d0095=_0x5f5367(0x1c8)+_0x284fa9+_0x5f5367(0x150),_0x3f985c=_0x5f5367(0x10f)+_0xe82965[_0x5f5367(0x184)]+_0x5f5367(0x1f3),_0xacec31=_0x5f5367(0xf5)+_0xe82965['atomic_mass'][_0x5f5367(0xf9)](0x2)+_0x5f5367(0x16e);cardSeries[_0x5f5367(0x12b)]=_0x3d0095+_0x32af71+_0x3f985c+_0xacec31,cat_container[_0x5f5367(0x221)][_0x5f5367(0x1d8)]=categoryColors[_0x284fa9];let _0x5b3ffc=new RegExp(_0xe82965[_0x5f5367(0x1e2)],'i'),_0x1a4b14=_0xe82965[_0x5f5367(0xdd)][_0x5f5367(0x21a)](_0x5b3ffc,'<a\x20target=\x22_blank\x22\x20href=\x27'+_0xe82965['source']+_0x5f5367(0x139));cardSummary[_0x5f5367(0x12b)]=_0x137729+'<span>'+_0x1a4b14+_0x5f5367(0x1f3);let _0x514863=Object[_0x5f5367(0x164)](_0xe82965)[_0x5f5367(0x197)]((_0x346318,_0x1297d7)=>{const _0x38eeb2=_0x5f5367;return(labelMap[_0x346318]||_0x346318)['toLowerCase']()>(labelMap[_0x1297d7]||_0x1297d7)[_0x38eeb2(0x16d)]()?0x1:-0x1;}),_0x220da7=details[_0x5f5367(0x19b)]('.selected'),_0x2f018f=_0x220da7?.['id'],_0x48f8c7=_0x220da7?.[_0x5f5367(0x19b)]('select')?.[_0x5f5367(0x1be)][0x0]['id'];;[...details[_0x5f5367(0x1cb)](_0x5f5367(0x135))][_0x5f5367(0x124)](_0x253f1=>_0x253f1['classList']['add'](_0x5f5367(0x1ac))),_0x514863[_0x5f5367(0x124)](_0x48a2f0=>{const _0x120718=_0x5f5367;if(doNotDisplay[_0x120718(0x1e9)](_0x5c2418=>_0x5c2418==_0x48a2f0))return;let _0x5136c1=details['querySelector']('#'+_0x48a2f0),_0x36349a,_0x14ac0d=!_0x5136c1;_0x14ac0d&&(_0x5136c1=document[_0x120718(0x17f)]('div'),_0x5136c1[_0x120718(0x117)]=0x0,_0x5136c1['id']=_0x48a2f0,_0x5136c1[_0x120718(0x14d)](_0x120718(0xfb),_0x56a2f0=>{handleDetailClick(_0x56a2f0,_0x5136c1);}),details['appendChild'](_0x5136c1));_0x5136c1['classList'][_0x120718(0x1c2)](_0x120718(0x1ac));let _0x1c0686=labelMap[_0x48a2f0]||_0x48a2f0;_0x1c0686=capitalize(_0x1c0686),_0x5136c1[_0x120718(0x12b)]=_0x120718(0x168)+_0x1c0686+_0x120718(0x14e)+printProp(_0x48a2f0,_0xe82965[_0x48a2f0])+_0x120718(0x1f3),_0x36349a=_0x5136c1[_0x120718(0x19b)](_0x120718(0x129)),_0x36349a?.[_0x120718(0x14d)](_0x120718(0xfb),function(_0x40e0b8){return _0x40e0b8['stopPropagation'](),![];}),_0x36349a?.[_0x120718(0x14d)](_0x120718(0x1e6),function(_0x44169a){handleDetailClick(_0x44169a,_0x5136c1);});if(_0x5136c1['id']==_0x2f018f){_0x5136c1[_0x120718(0x12c)][_0x120718(0x18f)](_0x120718(0x1b9));let _0x4f2759=_0x5136c1[_0x120718(0x19b)]('option[id=\x27'+_0x48f8c7+'\x27]');_0x5136c1['id']==_0x2f018f&&_0x36349a&&_0x4f2759&&(_0x4f2759[_0x120718(0x1b9)]=!![]);}}),[...details[_0x5f5367(0xf7)]][_0x5f5367(0x197)]((_0x226cf5,_0x4a3524)=>{return _0x226cf5['id']===_0x4a3524['id']?0x0:_0x226cf5['id']<_0x4a3524['id']?-0x1:0x1;})[_0x5f5367(0x124)](_0x1347a1=>details[_0x5f5367(0x20e)](_0x1347a1));let _0x3ff827=compList[_0x5f5367(0xdc)];compList[_0x5f5367(0x12b)]='',availableProperties=new Set([...availableProperties,...getKeysFromDetailSection()]['sort']((_0x5d3d0b,_0x176b70)=>{const _0x3cb355=_0x5f5367;return _0x5d3d0b[_0x3cb355(0x15a)](_0x176b70,undefined,{'numeric':!![],'sensitivity':_0x3cb355(0x1fd)});})),currentElement[_0x5f5367(0x120)]=_0xe82965['name'],availableProperties[_0x5f5367(0x124)](_0x2400a1=>{const _0x11b4bf=_0x5f5367;let _0x1a254f=document[_0x11b4bf(0x17f)]('option');_0x1a254f[_0x11b4bf(0xdc)]=_0x2400a1,_0x1a254f[_0x11b4bf(0x1a5)]=/\./[_0x11b4bf(0x13a)](_0x2400a1)&&valueAt(_0x2400a1,_0xe82965)==undefined,_0x1a254f[_0x11b4bf(0x120)]=_0x2400a1['replace'](/\d+$/,_0x3fdcae=>{return parseInt(_0x3fdcae)+0x1;}),compList[_0x11b4bf(0x20e)](_0x1a254f);}),compList[_0x5f5367(0xdc)]=_0x3ff827;});});function handleDetailClick(_0x5ede0f,_0x3d8df9){const _0x17432c=_0x431cf4;_0x5ede0f[_0x17432c(0xef)](),isTableMode=![],isDetailsMode=!![];let _0x28b898=_0x3d8df9;clearBtn1[_0x17432c(0xfb)](),[...details[_0x17432c(0x1cb)](_0x17432c(0x135))][_0x17432c(0x124)](_0x26bc01=>_0x26bc01[_0x17432c(0x12c)][_0x17432c(0x1c2)](_0x17432c(0x1b9))),_0x28b898[_0x17432c(0x12c)][_0x17432c(0x18f)](_0x17432c(0x1b9));let _0x4508ee=getElementKey(_0x28b898);compList[_0x17432c(0xdc)]=_0x4508ee;let _0x30a82d=_0x4508ee[_0x17432c(0x149)]('.'),_0x31a781=window[_0x17432c(0x138)][_0x30a82d[0x0]]||window[_0x17432c(0x138)][_0x30a82d[_0x17432c(0x15e)]('_')];fieldDefinition[_0x17432c(0x12b)]=_0x31a781||'';if(_0x28b898['id']==_0x17432c(0xf0)){tempSlider[_0x17432c(0xdc)]=0x111,handleTempChange();return;}else[celsiusLabel,fahrenheitLabel,kelvinLabel][_0x17432c(0x124)](_0x23a1c9=>{const _0x19f720=_0x17432c;_0x23a1c9['value']='',tempSlider[_0x19f720(0xdc)]=0x111;}),tempControls[_0x17432c(0x221)][_0x17432c(0x134)]='none';if(_0x28b898['id']==_0x17432c(0x1fa)){let _0x2c3f99=pick([_0x17432c(0x184),'atomic_mass']);setColorsByCPK(_0x2c3f99),legend[_0x17432c(0x19b)](_0x17432c(0x18e))['innerText']=_0x2c3f99==_0x17432c(0x1ae)?_0x17432c(0x14b):'energy_levels\x20(e⁻️)';return;}let _0x181229=_0x5ede0f[_0x17432c(0x1fc)]?.[_0x17432c(0x1be)]?_0x5ede0f[_0x17432c(0x1fc)][_0x17432c(0x1be)][0x0]['id']:_0x28b898['id'],_0x591703=[_0x17432c(0x1db),_0x17432c(0x127),_0x17432c(0x109),_0x17432c(0x13b),_0x17432c(0x202),_0x17432c(0x182),_0x17432c(0x218),_0x17432c(0x1cd),_0x17432c(0x203),'adiabatic_index',_0x17432c(0x159),_0x17432c(0x1ca),_0x17432c(0x205),_0x17432c(0x224)];if(_0x591703[_0x17432c(0x1e9)](_0x3abc19=>_0x3abc19==_0x181229)){legend['querySelector'](_0x17432c(0x18e))[_0x17432c(0x120)]=_0x28b898['id'][_0x17432c(0x21a)](/_/g,'\x20')+(''+(unitsMap[_0x28b898['id']]?'\x20'+unitsMap[_0x28b898['id']]:'')),setColorsByCategory(_0x181229);return;}c1[_0x17432c(0xdc)]=colorMap[_0x28b898['id']]?.[_0x17432c(0x1fe)]||categoryColors[_0x17432c(0x156)],c2['value']=colorMap[_0x28b898['id']]?.['end']||categoryColors[_0x17432c(0x1b3)];var _0x4345c7={};_0x4345c7[_0x17432c(0xdc)]=![],toggleColorInputs(!![]),setColorsByNumber(_0x4508ee,_0x4345c7);if(!_0x4345c7[_0x17432c(0xdc)])toggleColorInputs(![]);let _0x2df18e=unitsMap[_0x4508ee[_0x17432c(0x21a)](/\.\d+$/,'')],_0x48b90f=_0x2df18e?'\x20('+_0x2df18e+')':'',_0x1629b5=compList[_0x17432c(0x1be)][0x0][_0x17432c(0x120)][_0x17432c(0x21a)](/[._]/g,'\x20');legend['querySelector'](':scope\x20>\x20:nth-child(4)')[_0x17432c(0x120)]=_0x1629b5+_0x48b90f;}function handleScreenChanged(_0x43fbca){const _0x4be31e=_0x431cf4;if(screenshotMode[_0x4be31e(0xf3)]){document['body']['classList'][_0x4be31e(0x18f)](_0x4be31e(0x18b)),theTable[_0x4be31e(0x19b)]('.active')?.[_0x4be31e(0x12c)][_0x4be31e(0x1c2)](_0x4be31e(0x102));let _0xff6b1c=details[_0x4be31e(0x19b)](_0x4be31e(0x220)),_0x483c04=getElementKey(_0xff6b1c),_0xb78f00=unitsMap[_0x483c04],_0x23a7ed=_0xb78f00?'\x20('+_0xb78f00+')':'';fullscreenBanner[_0x4be31e(0x120)]=_0x4be31e(0x200)+compList[_0x4be31e(0x1be)][0x0][_0x4be31e(0x120)][_0x4be31e(0x21a)](/^(\w)/,(_0x553aa4,_0x1861d3)=>{const _0x4656fc=_0x4be31e;return _0x1861d3[_0x4656fc(0x1a7)]();})[_0x4be31e(0x21a)](/_/g,'\x20')[_0x4be31e(0x21a)](/\./g,_0x4be31e(0x1ef))+'\x20'+_0x23a7ed,fullscreenBanner[_0x4be31e(0x221)][_0x4be31e(0x134)]=_0x4be31e(0x127),document[_0x4be31e(0x201)]['requestFullscreen'](),window[_0x4be31e(0x169)]({'top':0x0,'behavior':_0x4be31e(0x188)});}else document[_0x4be31e(0x11a)][_0x4be31e(0x12c)]['remove']('screenshot'),fullscreenBanner[_0x4be31e(0x221)][_0x4be31e(0x134)]=_0x4be31e(0x165),document[_0x4be31e(0x1c7)]();}screenshotMode[_0x431cf4(0x14d)](_0x431cf4(0x1e6),handleScreenChanged),document[_0x431cf4(0x14d)]('fullscreenchange',()=>{const _0xffe80c=_0x431cf4;!document[_0xffe80c(0x1d5)]&&(screenshotMode[_0xffe80c(0xf3)]=![],fullscreenBanner[_0xffe80c(0x221)][_0xffe80c(0x134)]=_0xffe80c(0x165),document[_0xffe80c(0x11a)]['classList'][_0xffe80c(0x1c2)](_0xffe80c(0x18b)));});let handleTempChange=()=>{const _0x3526cd=_0x431cf4;kelvinLabel[_0x3526cd(0xdc)]=Math[_0x3526cd(0x1ea)](tempSlider[_0x3526cd(0xdc)]),celsiusLabel[_0x3526cd(0xdc)]=Math[_0x3526cd(0x1ea)](KtoC(tempSlider['value'])),fahrenheitLabel[_0x3526cd(0xdc)]=Math['round'](KtoF(tempSlider[_0x3526cd(0xdc)])),details[_0x3526cd(0x19b)](_0x3526cd(0x220))?.[_0x3526cd(0x12c)][_0x3526cd(0x1c2)](_0x3526cd(0x1b9)),phase[_0x3526cd(0x12c)][_0x3526cd(0x18f)](_0x3526cd(0x1b9)),colors['style'][_0x3526cd(0x134)]='none',tempControls[_0x3526cd(0x221)][_0x3526cd(0x134)]='',legend[_0x3526cd(0xf7)][0x3][_0x3526cd(0x12b)]=_0x3526cd(0x14f)+categoryColors[_0x3526cd(0x156)]+_0x3526cd(0x1ab)+categoryColors[_0x3526cd(0xee)]+'\x22>liquid</span>\x20<span\x20style=\x22color:'+categoryColors[_0x3526cd(0x1b3)]+_0x3526cd(0x133),setColorsByPhase();};tempSlider[_0x431cf4(0x14d)](_0x431cf4(0x1ff),debounce(0x12c,handleTempChange));let handleManualTempChange=_0x32e565=>{const _0x413170=_0x431cf4;switch(_0x32e565[_0x413170(0x1fc)]['id']){case'celsiusLabel':fahrenheitLabel[_0x413170(0xdc)]=Math[_0x413170(0x1ea)](KtoF(CtoK(_0x32e565[_0x413170(0x1fc)][_0x413170(0xdc)]))),kelvinLabel[_0x413170(0xdc)]=Math['round'](CtoK(_0x32e565['target'][_0x413170(0xdc)]));break;case'fahrenheitLabel':celsiusLabel[_0x413170(0xdc)]=Math[_0x413170(0x1ea)](KtoC(FtoK(_0x32e565[_0x413170(0x1fc)][_0x413170(0xdc)]))),kelvinLabel[_0x413170(0xdc)]=Math[_0x413170(0x1ea)](FtoK(_0x32e565['target'][_0x413170(0xdc)]));break;case _0x413170(0x13c):celsiusLabel[_0x413170(0xdc)]=Math['round'](KtoC(_0x32e565[_0x413170(0x1fc)][_0x413170(0xdc)])),fahrenheitLabel['value']=Math[_0x413170(0x1ea)](KtoF(_0x32e565[_0x413170(0x1fc)]['value']));break;}tempSlider['value']=parseFloat(kelvinLabel[_0x413170(0xdc)]),handleTempChange();};[celsiusLabel,fahrenheitLabel,kelvinLabel][_0x431cf4(0x124)](_0x528541=>{const _0x2c141e=_0x431cf4;_0x528541[_0x2c141e(0x14d)](_0x2c141e(0x1ff),debounce(0x12c,handleManualTempChange));}),layoutModeSelect[_0x431cf4(0x14d)]('change',function(_0x54a99e){const _0x292df0=_0x431cf4;['up',_0x292df0(0xeb),_0x292df0(0xec),_0x292df0(0x1c1)][_0x292df0(0x124)](_0xbe2c19=>document['body'][_0x292df0(0x12c)][_0x292df0(0x1c2)](_0xbe2c19));if(_0x54a99e[_0x292df0(0x1fc)][_0x292df0(0xdc)])document[_0x292df0(0x11a)][_0x292df0(0x12c)][_0x292df0(0x18f)](_0x54a99e[_0x292df0(0x1fc)][_0x292df0(0xdc)][_0x292df0(0x16d)]());});let removeViewModeCss=()=>{const _0x4cee37=_0x431cf4;[_0x4cee37(0x1b0),_0x4cee37(0x1f2),_0x4cee37(0x19c),'medium',_0x4cee37(0x161),_0x4cee37(0x15d),_0x4cee37(0x180)][_0x4cee37(0x124)](_0x57835c=>document[_0x4cee37(0x11a)][_0x4cee37(0x12c)][_0x4cee37(0x1c2)](_0x57835c));},layoutOptionsDisabled=_0xe5ee6d=>{const _0x2403d0=_0x431cf4;layout_left[_0x2403d0(0x1a5)]=_0xe5ee6d,layout_right[_0x2403d0(0x1a5)]=_0xe5ee6d,layout_up[_0x2403d0(0x1a5)]=_0xe5ee6d,layout_down['disabled']=_0xe5ee6d;};viewModeSelect[_0x431cf4(0x14d)](_0x431cf4(0x1e6),function(_0x5b6a2a){const _0x3d16ab=_0x431cf4;removeViewModeCss();let _0x4e18d1=_0x5b6a2a[_0x3d16ab(0x1fc)]['value'][_0x3d16ab(0x16d)]();currentViewMode=_0x4e18d1,document[_0x3d16ab(0x11a)][_0x3d16ab(0x12c)][_0x3d16ab(0x18f)](_0x4e18d1),layoutOptionsDisabled(![]);switch(_0x4e18d1){case _0x3d16ab(0x1b0):layoutOptionsDisabled(!![]),layoutModeSelect[_0x3d16ab(0xdc)]='';break;case _0x3d16ab(0x1f2):layoutModeSelect[_0x3d16ab(0xdc)]=layout_up[_0x3d16ab(0x1b9)]?layout_up[_0x3d16ab(0xdc)]:layout_down[_0x3d16ab(0xdc)];break;case _0x3d16ab(0x19c):case _0x3d16ab(0x1e8):case'large':case _0x3d16ab(0x180):layout_left[_0x3d16ab(0x1a5)]=!![],layout_right[_0x3d16ab(0x1a5)]=!![],layoutModeSelect['value']=layout_up['selected']?layout_up[_0x3d16ab(0xdc)]:layout_down[_0x3d16ab(0xdc)];break;case _0x3d16ab(0x15d):layout_up[_0x3d16ab(0x1a5)]=!![],layout_down[_0x3d16ab(0x1a5)]=!![],layoutModeSelect[_0x3d16ab(0xdc)]=layout_left[_0x3d16ab(0x1b9)]?layout_left['value']:layout_right[_0x3d16ab(0xdc)];break;}layoutModeSelect[_0x3d16ab(0x11c)](new Event(_0x3d16ab(0x1e6)));}),[...document['querySelectorAll']('#startColor,\x20#endColor')][_0x431cf4(0x124)](_0x2480d2=>{const _0xdfa0dc=_0x431cf4;let _0x292a70=debounce(0x12c,_0x392659=>{const _0x141262=_0x1bce;setColorsByNumber(getElementKey(details['querySelector'](_0x141262(0x220))));});_0x2480d2['addEventListener'](_0xdfa0dc(0x1ff),_0x48bf4e=>{const _0x573b9a=_0xdfa0dc;let _0x7e6b1d=details[_0x573b9a(0x19b)](_0x573b9a(0x220));!colorMap[_0x7e6b1d['id']]&&(colorMap[_0x7e6b1d['id']]=_0x48bf4e[_0x573b9a(0x1fc)][_0x573b9a(0xdc)]),_0x48bf4e[_0x573b9a(0x1fc)]['id']==_0x573b9a(0x17e)?colorMap[_0x7e6b1d['id']][_0x573b9a(0x1fe)]=_0x48bf4e[_0x573b9a(0x1fc)][_0x573b9a(0xdc)]:colorMap[_0x7e6b1d['id']][_0x573b9a(0x166)]=_0x48bf4e[_0x573b9a(0x1fc)][_0x573b9a(0xdc)],_0x292a70(_0x48bf4e);});});var searchFields=[_0x431cf4(0xdd),_0x431cf4(0x122),_0x431cf4(0x1e2),_0x431cf4(0x143),_0x431cf4(0x121),_0x431cf4(0x1b6),_0x431cf4(0x1db),_0x431cf4(0xf0)];[search1,search2][_0x431cf4(0x124)](_0x3167fa=>{const _0x50193c=_0x431cf4;_0x3167fa[_0x50193c(0x14d)]('input',function(_0x4cf36d){const _0x36d0a9=_0x50193c;if(_0x4cf36d[_0x36d0a9(0x1fc)]['value']=='')return elementEls[_0x36d0a9(0x124)](_0x3f989=>{const _0x204242=_0x36d0a9;_0x3f989[_0x204242(0x221)][_0x204242(0x1e4)]=_0x204242(0x1f8);}),![];let _0x31434b=_0x4cf36d['target']['value']['split']('\x20'),_0x17e4cf=[],_0x43dca9=_0x31434b[_0x36d0a9(0x1d9)]==0x1&&window[_0x36d0a9(0x12e)][_0x36d0a9(0x104)](_0x3f6a3e=>_0x3f6a3e[_0x36d0a9(0x1e2)]['toLowerCase']()==_0x31434b[0x0][_0x36d0a9(0x16d)]()||_0x3f6a3e[_0x36d0a9(0x122)][_0x36d0a9(0x16d)]()==_0x31434b[0x0]['toLowerCase']());_0x43dca9?(_0x17e4cf[_0x36d0a9(0x1f5)](_0x43dca9),elementEls[_0x36d0a9(0x104)](_0x38a93b=>_0x38a93b['id']==_0x43dca9['symbol'])[_0x36d0a9(0xfb)](),elementEls[_0x36d0a9(0x124)](_0x121b6e=>_0x121b6e[_0x36d0a9(0x221)][_0x36d0a9(0x1e4)]=_0x36d0a9(0x1f8))):(_0x17e4cf=pTable[_0x36d0a9(0x1e4)](_0x539483=>{let _0x3c41fa=!![];return _0x31434b['forEach'](_0x2d5da4=>{const _0x1d7067=_0x1bce;let _0x5c5759=new RegExp('\x5cb'+_0x2d5da4,'i');!searchFields[_0x1d7067(0x1e9)](_0x258b70=>_0x5c5759[_0x1d7067(0x13a)](_0x539483[_0x258b70]))&&(_0x3c41fa=![]);}),_0x3c41fa;}),elementEls[_0x36d0a9(0x124)](_0x5b6a9d=>{const _0x11d4d5=_0x36d0a9;_0x5b6a9d[_0x11d4d5(0x221)][_0x11d4d5(0x1e4)]='brightness(.1)';}),_0x17e4cf['forEach'](_0x2204dd=>{const _0x7a458=_0x36d0a9;let _0x4edb77=elementEls['find'](_0x26c661=>_0x26c661['id']==_0x2204dd[_0x7a458(0x122)]);_0x4edb77[_0x7a458(0x221)]['filter']='brightness(1)';}));});}),[compList,compValue,compOperator][_0x431cf4(0x124)](_0x28598b=>{const _0x21132f=_0x431cf4;_0x28598b['addEventListener'](_0x21132f(0x1ff),handleCompChange);});function handleCompChange(_0x14c419){const _0x22db9e=_0x431cf4;let _0x40ce3f=compList[_0x22db9e(0xdc)]['split']('.')[0x0],_0x34fb15=do...
